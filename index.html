@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActionIdle - Login</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+    <div class="container mx-auto">
+
+        <div id="login-screen">
+            <h1 class="title">ACTION IDLE</h1>
+            <input type="email" id="login-email" placeholder="Email" required>
+            <input type="password" id="login-password" placeholder="Password" required>
+            <div id="login-feedback" class="feedback-message"></div>
+            <div id="login-error" class="error-message"></div>
+            <button id="login-button">Login</button>
+            <button id="register-button" class="secondary-button">Register</button>
+            <button id="reset-password-button" class="link-button">Forgot Password?</button>
+        </div>
+
+        <div id="char-select-screen" class="hidden">
+            <h2 class="title">SELECT CHARACTER</h2>
+            <div id="character-list" class="mb-4 character-list-container">
+                <p class="text-center text-gray-400">No characters found.</p>
+            </div>
+
+            <div id="delete-confirm-dialog" class="hidden delete-confirm-card">
+                <p id="delete-confirm-message" class="mb-3 text-center">Are you sure?</p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirm-delete-button" class="action-button delete-button">Confirm Delete</button>
+                    <button id="cancel-delete-button" class="action-button secondary-button">Cancel</button>
+                </div>
+            </div>
+
+            <div id="character-actions" class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
+                 <button id="launch-char-button" class="action-button launch-button" disabled>Launch</button>
+                 <button id="delete-char-button" class="action-button delete-button" disabled>Delete</button>
+                 </div>
+
+            <div id="char-select-error" class="error-message mt-4"></div>
+            <button id="create-new-char-button" class="mt-4">Create New Character</button>
+            <button id="logout-button" class="secondary-button">Logout</button>
+        </div>
+
+        <div id="char-create-screen" class="hidden">
+            <h2 class="title">CREATE CHARACTER</h2>
+            <div class="mb-4">
+                <label for="char-name" class="block mb-1 text-sm font-medium text-gray-300">Character Name:</label>
+                <input type="text" id="char-name" placeholder="Enter name" required>
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1 text-sm font-medium text-gray-300">Select Class:</label>
+                <div id="class-selection" class="flex flex-wrap justify-center">
+                    <button class="class-button" data-class="Juggernaut">Juggernaut</button>
+                    <button class="class-button" data-class="Sharpshooter">Sharpshooter</button>
+                    <button class="class-button" data-class="Psion">Psion</button>
+                </div>
+                <input type="hidden" id="selected-class" value="">
+            </div>
+            <div id="char-create-error" class="error-message"></div>
+            <button id="create-button">Create</button>
+            <button id="back-to-select-button" class="secondary-button">Back to Selection</button>
+        </div>
+
+    </div>
+
+    <script type="module" src="script.js"></script>
+
+</body>
+</html>

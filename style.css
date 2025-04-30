@@ -1,0 +1,181 @@
+/* Basic styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #111827; /* Dark blue-gray */
+    color: #e5e7eb; /* Light gray text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at top right, rgba(19, 78, 74, 0.5), transparent),
+                      radial-gradient(circle at bottom left, rgba(55, 48, 163, 0.5), transparent);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    padding: 1rem;
+}
+
+.container {
+    background-color: rgba(31, 41, 55, 0.85);
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    /* --- Width Adjustment - Reinforce --- */
+    width: 400px; /* Fixed width */
+    max-width: 95%; /* Responsive fallback */
+    margin-left: auto;  /* Explicitly center */
+    margin-right: auto; /* Explicitly center */
+    /* --- End Width Adjustment --- */
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(75, 85, 99, 0.5);
+}
+
+.title {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.875rem; /* text-3xl */
+    line-height: 2.25rem;
+    color: #93c5fd;
+    text-shadow: 0 0 8px rgba(147, 197, 253, 0.6);
+}
+
+/* Style inputs */
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    background-color: #374151;
+    border: 1px solid #4b5563;
+    color: #e5e7eb;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    font-size: 1rem;
+}
+input:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4);
+}
+
+/* --- Improved Button Styling --- */
+button {
+    /* Base styles */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle top/left border */
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%; /* Default to full width */
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.875rem;
+
+    /* Gradient & Shadow for depth */
+    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6)); /* Default blue gradient */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Outer shadow + inner highlight */
+
+    /* Transitions */
+    transition: background-image 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+button:hover:not(:disabled) {
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb)); /* Lighter/darker gradient on hover */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+button:active:not(:disabled) {
+    transform: scale(0.98) translateY(1px); /* Press down effect */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 0, 0, 0.1); /* Less shadow when pressed */
+    background-image: linear-gradient(to top, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6)); /* Invert gradient slightly */
+}
+
+/* Disabled state */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-image: linear-gradient(to bottom, #5a6b80, #4b5563); /* Gray gradient */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Minimal shadow */
+    border-color: rgba(150, 150, 150, 0.1);
+}
+
+/* Specific Button Colors (using CSS variables for gradients) */
+button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-bg-top: #5aa1f2; --button-hover-bg-bottom: #2563eb; }
+.secondary-button { --button-bg-top: #6b7280; --button-bg-bottom: #4b5563; --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675; }
+.launch-button { --button-bg-top: #2db760; --button-bg-bottom: #16a34a; --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d; }
+.delete-button { --button-bg-top: #ef4444; --button-bg-bottom: #dc2626; --button-hover-bg-top: #f87171; --button-hover-bg-bottom: #b91c1c; }
+
+/* Style for the link-like button */
+.link-button {
+    background: none; background-image: none; border: none; box-shadow: none;
+    color: #93c5fd; text-transform: none; font-weight: normal; font-size: 0.875rem;
+    padding: 0.25rem 0; margin-top: 1rem; width: auto; display: inline-block;
+    text-decoration: underline;
+}
+.link-button:hover:not(:disabled) { background: none; background-image: none; color: #bfdbfe; box-shadow: none; text-decoration: underline; }
+.link-button:active:not(:disabled) { transform: none; box-shadow: none; color: #60a5fa; }
+.link-button:disabled { background: none; background-image: none; box-shadow: none; color: #6b7280; text-decoration: none; opacity: 0.6; }
+
+/* --- End Improved Button Styling --- */
+
+/* Feedback & Error message styling */
+.feedback-message { color: #60a5fa; font-size: 0.875rem; margin-top: 0.5rem; margin-bottom: 0.5rem; text-align: center; min-height: 1.25rem; }
+.error-message { color: #f87171; font-size: 0.875rem; margin-top: 0.5rem; margin-bottom: 0.5rem; text-align: center; min-height: 1.25rem; }
+.hidden { display: none; }
+
+/* Class selection buttons */
+.class-button {
+    background-color: #4b5563; margin: 0.5rem 0.25rem; width: auto; padding: 0.75rem 1rem; flex-grow: 1; min-width: 100px; text-transform: none; letter-spacing: normal; font-size: 0.875rem;
+    background-image: linear-gradient(to bottom, #6b7280, #4b5563); /* Apply gradient */
+}
+.class-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
+.class-button.selected {
+    background-image: linear-gradient(to bottom, #4a90e2, #3b82f6); /* Use primary blue gradient */
+    box-shadow: 0 0 0 2px #ffffff, 0 2px 4px rgba(0, 0, 0, 0.2); /* Add shadow to selected */
+    color: white; border-color: rgba(255, 255, 255, 0.3);
+}
+.class-button.selected:hover:not(:disabled) { background-image: linear-gradient(to bottom, #5aa1f2, #2563eb); }
+
+/* Character list styling */
+.character-list-container { max-height: 200px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.5); }
+.character-list-item { background-color: #374151; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 0.375rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #4b5563; cursor: pointer; transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
+.character-list-item:last-child { margin-bottom: 0; }
+.character-list-item:hover { background-color: #4b5563; border-color: #6b7280; }
+.character-list-item.selected-char { background-color: #3b82f6; border-color: #93c5fd; color: white; }
+.character-list-item.selected-char:hover { background-color: #2563eb; }
+.character-list-item span { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Action Buttons Area Below List */
+#character-actions {
+    border-top: 1px solid #4b5563;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    /* Using flex classes from HTML: flex flex-col sm:flex-row justify-center gap-4 */
+}
+
+/* --- Adjust Action Buttons in Flex Container --- */
+#character-actions .action-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.8rem;
+    width: auto;      /* Override default width: 100% */
+    flex-grow: 0;     /* Prevent buttons from growing to fill space */
+    /* Set a max-width if needed, e.g., max-width: 150px; */
+}
+/* --- End Action Button Adjustment --- */
+
+
+/* Inline Delete Confirmation Dialog */
+.delete-confirm-card { background-color: #4b5563; border: 1px solid #f87171; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem; }
+.delete-confirm-card p { color: #fecaca; font-weight: bold; margin-bottom: 0.75rem; /* Add space below text */ }
+.delete-confirm-card .action-button {
+    width: auto;
+    flex-grow: 1; /* Allow confirm/cancel to share space */
+}
+
+
+/* Label styling */
+label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: #d1d5db; }
