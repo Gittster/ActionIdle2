@@ -22,17 +22,7 @@ body {
 }
 
 /* --- Container Styling --- */
-
-/* Default styles for the main wrapper - can be minimal */
-.app-container {
-    /* No fixed width here anymore */
-}
-
-/* Styles specific to Login/Select/Create screens when they are VISIBLE */
-/* We target the app-container when a specific screen *inside* it is NOT hidden */
-/* This is a bit tricky, might be better to add a class to app-container based on state */
-
-/* --- Alternative: Style the inner screen divs directly --- */
+.app-container { /* No fixed width here */ }
 
 /* Styles for the login/select/create cards */
 #login-screen,
@@ -51,22 +41,13 @@ body {
 }
 
 /* Styles for the Town Screen Container */
-/* This is applied to the #town-screen div */
 .town-container {
-    width: 90%; /* Wider */
-    max-width: 1200px; /* Max width */
-    min-height: 85vh; /* Minimum height */
-    display: flex; /* Use flex for internal layout */
-    flex-direction: column;
-    background-color: rgba(17, 24, 39, 0.9); /* Darker */
-    border: 1px solid #374151;
-    border-radius: 0.5rem; /* Slightly smaller radius */
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3); /* Stronger shadow */
-    margin-top: auto; /* Helps vertical centering if body align-items is removed/changed */
-    margin-bottom: auto;
-    overflow: hidden; /* Prevent content spill */
+    width: 90%; max-width: 1200px; min-height: 85vh; display: flex;
+    flex-direction: column; background-color: rgba(17, 24, 39, 0.9);
+    border: 1px solid #374151; border-radius: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    margin-top: auto; margin-bottom: auto; overflow: hidden;
 }
-
 
 /* Title Styling */
 .title {
@@ -150,12 +131,74 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 .divider:not(:empty)::after { margin-left: .5em; }
 .divider span { font-size: 0.8rem; text-transform: uppercase; }
 
-/* Class selection buttons */
-.class-selection-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
-.class-button { margin: 0; width: auto; padding: 0.75rem 1rem; flex-grow: 1; min-width: 100px; text-transform: none; letter-spacing: normal; font-size: 0.875rem; background-image: linear-gradient(to bottom, #6b7280, #4b5563); }
-.class-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
-.class-button.selected { background-image: linear-gradient(to bottom, #4a90e2, #3b82f6); box-shadow: 0 0 0 2px #ffffff, 0 2px 4px rgba(0, 0, 0, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3); }
-.class-button.selected:hover:not(:disabled) { background-image: linear-gradient(to bottom, #5aa1f2, #2563eb); }
+/* --- Class Selection Styles --- */
+.class-selection-grid {
+    display: grid;
+    /* Create 2 columns, adjust minmax for desired card width */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem; /* Space between cards */
+    margin-bottom: 1.5rem; /* Space below the grid */
+}
+
+.class-card {
+    background-color: #374151; /* Card background */
+    border: 1px solid #4b5563;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer; /* Indicate card is clickable (optional) */
+}
+
+.class-card:hover {
+    border-color: #6b7280;
+}
+
+.class-card.selected { /* Style for the selected card */
+    border-color: #60a5fa; /* Blue border */
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4); /* Blue glow */
+}
+
+.class-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e5e7eb; /* Light text */
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.class-description {
+    font-size: 0.8rem;
+    color: #d1d5db; /* Lighter gray text */
+    line-height: 1.4;
+    flex-grow: 1; /* Allow description to take up space */
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.class-select-button {
+    /* Use general button styles but maybe smaller */
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+    margin-top: auto; /* Push button to bottom */
+    width: 100%; /* Button takes full card width */
+    /* Use primary button colors */
+    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
+}
+.class-select-button:hover:not(:disabled) {
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb));
+}
+/* Style button within selected card */
+.class-card.selected .class-select-button {
+    background-image: linear-gradient(to bottom, #2db760, #16a34a); /* Green when selected */
+    --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d;
+}
+.class-card.selected .class-select-button:hover:not(:disabled) {
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom));
+}
+/* --- End Class Selection Styles --- */
 
 /* Character list styling */
 .character-list-container { max-height: 200px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.5); margin-bottom: 1rem; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
@@ -182,17 +225,6 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 
 /* --- TOWN SCREEN STYLES --- */
 
-/* Town Container (Wider Layout) */
-.town-container {
-    width: 90%; max-width: 1200px; min-height: 85vh; display: flex;
-    flex-direction: column; background-color: rgba(17, 24, 39, 0.9);
-    border: 1px solid #374151; border-radius: 0.5rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-    margin-top: auto; margin-bottom: auto; overflow: hidden;
-    /* Remove fixed width from app-container if needed */
-    /* This selector takes precedence over the general .app-container */
-}
-
 /* Town Header */
 .town-header {
     padding: 0.75rem 1.5rem; background-color: rgba(31, 41, 55, 0.7);
@@ -217,6 +249,14 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
     font-size: 0.75rem; width: auto; margin-left: 1rem; margin-top: 0;
 }
 .town-logout-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
+.town-switch-button { /* Style for Switch Char button */
+    background-image: linear-gradient(to bottom, #a855f7, #9333ea); /* Purple gradient */
+    --button-hover-bg-top: #c084fc; --button-hover-bg-bottom: #a855f7; /* Lighter purple hover */
+    padding: 0.4rem 0.8rem; font-size: 0.75rem; width: auto; margin-left: 0.5rem; margin-top: 0;
+}
+.town-switch-button:hover:not(:disabled) {
+     background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom));
+}
 
 /* Town Main Content Area */
 .town-main-content { padding: 1.5rem; flex-grow: 1; overflow-y: auto; position: relative; }
@@ -243,3 +283,356 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 .inv-slot { border: 1px solid #374151; background-color: rgba(31, 41, 55, 0.5); aspect-ratio: 1 / 1; border-radius: 0.125rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; min-width: 45px; min-height: 45px; }
 .inv-slot:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
 
+/* Overview Panel Specific Styles (Example) */
+#overview-panel p { margin-bottom: 0.75rem; line-height: 1.6; color: #d1d5db; }
+#overview-panel #overview-char-name { font-weight: bold; color: #e5e7eb; }
+
+/* Map Panel Styles */
+.map-area {
+    /* Basic container for map elements */
+    padding: 1rem;
+    border: 1px solid #374151;
+    border-radius: 0.25rem;
+    background-color: rgba(17, 24, 39, 0.5);
+    min-height: 300px; /* Give it some space */
+}
+.map-area p {
+    margin-bottom: 1rem;
+    color: #9ca3af;
+}
+.map-node {
+    /* Style the clickable node */
+    display: inline-block; /* Or block */
+    width: auto; /* Size based on content */
+    padding: 0.8rem 1.5rem;
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+    /* Use secondary button colors or unique style */
+    --button-bg-top: #6b7280; --button-bg-bottom: #4b5563;
+    --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675;
+    /* Re-apply gradient */
+    background-image: linear-gradient(to bottom, var(--button-bg-top, #6b7280), var(--button-bg-bottom, #4b5563));
+}
+.map-node:hover:not(:disabled) {
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #7c8796), var(--button-hover-bg-bottom, #5a6675));
+}
+/* Add selected state for map node later if needed */
+/* Example:
+.map-node.selected {
+    border: 2px solid #60a5fa;
+    box-shadow: 0 0 5px #60a5fa;
+}
+*/
+
+/* --- NEW GAME SCREEN STYLES --- */
+
+.game-container {
+    width: 100%; /* Take full width */
+    height: 100vh; /* Take full viewport height */
+    max-width: none; /* Override any previous max-width */
+    padding: 0; /* No padding for the game container itself */
+    margin: 0; /* No margin */
+    display: flex; /* Use flex for centering canvas maybe? Or just position canvas */
+    justify-content: center;
+    align-items: center;
+    background-color: #000; /* Black background for game area */
+    position: relative; /* For positioning UI elements like exit button */
+    overflow: hidden; /* Hide anything outside the game area */
+}
+
+#game-canvas {
+    display: block; /* Remove extra space below canvas */
+    background-color: #222; /* Dark gray canvas background */
+    /* Width/height will be set by JS, but ensure it scales visually */
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.exit-game-button { /* Simple styling for an exit button */
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    /* Use secondary button colors */
+     --button-bg-top: #6b7280; --button-bg-bottom: #4b5563;
+     --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675;
+     /* Re-apply gradient since position:absolute might affect cascade */
+     background-image: linear-gradient(to bottom, var(--button-bg-top, #6b7280), var(--button-bg-bottom, #4b5563));
+}
+.exit-game-button:hover:not(:disabled) {
+     background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #7c8796), var(--button-hover-bg-bottom, #5a6675));
+}
+
+/* Prevent body scrolling when game is active */
+/* --- Find this existing rule --- */
+/* Prevent body scrolling when game is active */
+body.game-active {
+    overflow: hidden; /* This prevents scrollbars on the body */
+    padding: 0; /* <-- Add this line to remove body padding */
+}
+
+/* Ensure game container takes exactly viewport height */
+.game-container {
+    width: 100%;
+    height: 100vh; /* Use viewport height */
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    position: relative;
+    overflow: hidden; /* Hide anything outside this container too */
+}
+
+/* Ensure canvas fills container - width/height set by JS */
+#game-canvas {
+    display: block; /* Important to prevent extra space */
+    background-color: #222;
+    max-width: 100%;
+    max-height: 100%;
+    /* Remove explicit width/height from CSS if present */
+}
+
+/* --- NEW Minimap Styles --- */
+#minimap-container {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 150px; /* Adjust size as needed */
+    height: 100px; /* Adjust size as needed */
+    background-color: rgba(17, 24, 39, 0.7); /* Dark semi-transparent background */
+    border: 1px solid #4b5563;
+    border-radius: 0.25rem;
+    overflow: hidden; /* Hide parts of viewport rect outside minimap */
+    z-index: 5; /* Ensure it's above the canvas but below maybe other UI */
+}
+
+#minimap-viewport {
+    position: absolute; /* Position relative to minimap container */
+    border: 1px solid #facc15; /* Yellow border for visibility */
+    background-color: rgba(250, 204, 21, 0.2); /* Transparent yellow fill */
+    /* Width, height, top, left will be set by JS */
+}
+
+/* --- Add these styles to style.css --- */
+
+/* Style for player dot on minimap */
+.minimap-dot {
+    /* Style defined inline by JS for position/size/color */
+    /* Add box-shadow or border for visibility if needed */
+    /* box-shadow: 0 0 2px white; */
+}
+
+/* Style for environment objects on minimap */
+.minimap-obj {
+     /* Style defined inline by JS for position/size/color */
+     border-radius: 1px; /* Slight rounding */
+}
+
+/* Ensure viewport is above other minimap elements */
+#minimap-viewport {
+    z-index: 2;
+}
+
+/* --- End of new styles --- */
+/* --- END Minimap Styles --- */
+/* ... rest of existing styles ... */
+/* --- END GAME SCREEN STYLES --- */
+
+/* --- NEW Tooltip Styles --- */
+
+.item-tooltip {
+    position: absolute; /* Position relative to viewport or a positioned ancestor */
+    z-index: 100; /* Ensure it's on top */
+    background-color: rgba(17, 24, 39, 0.95); /* Dark background */
+    border: 1px solid #818cf8; /* Indigo border */
+    border-radius: 0.375rem; /* rounded-md */
+    padding: 0.75rem; /* p-3 */
+    width: auto; /* Size based on content */
+    max-width: 300px; /* Prevent it from getting too wide */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Drop shadow */
+    color: #e5e7eb; /* Light text */
+    font-size: 0.8rem; /* Smaller text */
+    line-height: 1.4;
+    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+    opacity: 0; /* Start hidden */
+    transform: scale(0.95); /* Start slightly scaled down */
+    transition: opacity 0.1s ease-out, transform 0.1s ease-out; /* Fade/scale transition */
+}
+
+.item-tooltip.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Tooltip Content Styling (Example) */
+.item-tooltip .item-name {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #a5b4fc; /* Lighter indigo */
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 0.3rem;
+}
+
+.item-tooltip .item-type {
+    font-style: italic;
+    color: #9ca3af; /* gray-400 */
+    margin-bottom: 0.5rem;
+    display: block; /* Ensure it's on its own line */
+}
+
+.item-tooltip .item-stat {
+    display: block; /* Each stat on its own line */
+    margin-bottom: 0.2rem;
+    color: #d1d5db; /* Slightly dimmer text */
+}
+.item-tooltip .item-stat .value {
+    color: #ffffff; /* White value */
+    font-weight: 500;
+}
+
+
+/* --- End Tooltip Styles --- */
+
+/* --- NEW Skills Panel Styles --- */
+
+.skills-content {
+    /* Layout for content within the skills panel */
+}
+
+.skills-content p {
+    margin-bottom: 0.75rem;
+    color: #9ca3af; /* gray-400 */
+}
+
+#learned-skills-list {
+    /* Container for learned skill items */
+    border: 1px solid #374151;
+    background-color: rgba(17, 24, 39, 0.5);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    min-height: 100px;
+}
+
+.skill-item { /* Style for displaying a single skill */
+    background-color: rgba(55, 65, 81, 0.5);
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #4b5563;
+}
+
+.skill-item .skill-name {
+    font-weight: bold;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+}
+
+.skill-item .skill-desc {
+    font-size: 0.8rem;
+    color: #d1d5db;
+    margin-top: 0.25rem;
+}
+
+/* Utility margin class (if needed elsewhere) */
+.mt-4 {
+    margin-top: 1rem; /* Equivalent of Tailwind's mt-4 */
+}
+
+/* --- END Skills Panel Styles --- */
+
+/* --- NEW Skill Assignment Styles --- */
+
+/* Container for the assignable slots */
+.skill-assignment-container {
+    display: flex;
+    gap: 0.5rem; /* Space between slots */
+    background-color: rgba(31, 41, 55, 0.8); /* Match game bar background */
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid #4b5563;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    justify-content: center; /* Center slots if container is wider */
+    margin-top: 0.5rem;
+}
+
+/* Individual assignable slot */
+.assign-skill-slot {
+    width: 60px; /* Match game bar slot size */
+    height: 60px;
+    background-color: rgba(17, 24, 39, 0.7);
+    border: 1px solid #6b7280;
+    border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column; /* Stack icon/name and key */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    position: relative;
+    overflow: hidden;
+    cursor: pointer; /* Indicate clickable */
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    text-align: center;
+}
+
+.assign-skill-slot:hover {
+    border-color: #9ca3af;
+    background-color: rgba(55, 65, 81, 0.6);
+}
+
+/* Style for the keybind text */
+.assign-skill-slot span {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    color: rgba(209, 213, 219, 0.7);
+    user-select: none;
+}
+.assign-skill-slot.mouse-skill span {
+    font-size: 0.6rem;
+}
+
+/* Style for the assigned skill name/icon placeholder */
+.assign-skill-slot .assigned-skill-name {
+    font-size: 0.7rem;
+    color: #e5e7eb;
+    padding: 0 2px; /* Prevent text touching edges */
+    line-height: 1.2;
+    /* Add styles for skill icon later */
+}
+ .assign-skill-slot .assigned-skill-name.empty {
+    color: #6b7280; /* Dim color if empty */
+    font-style: italic;
+}
+
+
+/* Highlight for the slot selected for assignment */
+.assign-skill-slot.selected-for-assignment {
+    border-color: #facc15; /* Yellow border */
+    box-shadow: 0 0 5px rgba(250, 204, 21, 0.5);
+}
+
+/* Highlight for the skill selected from the learned list */
+#learned-skills-list .skill-item.selected-for-assignment {
+     border-color: #facc15; /* Yellow border */
+     background-color: rgba(75, 85, 99, 0.7);
+     cursor: default; /* Indicate it's selected */
+}
+ #learned-skills-list .skill-item {
+     cursor: pointer; /* Make learned skills clickable */
+     transition: border-color 0.2s ease, background-color 0.2s ease;
+ }
+ #learned-skills-list .skill-item:hover {
+     background-color: rgba(75, 85, 99, 0.7);
+ }
+
+
+/* --- END Skill Assignment Styles --- */
