@@ -1,11 +1,17 @@
-/* Basic styling */
+/* Basic Reset / Base Styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #111827; /* Dark blue-gray */
-    color: #e5e7eb; /* Light gray text */
+    background-color: #111827;
+    color: #e5e7eb;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Center login/select vertically */
     min-height: 100vh;
     background-image: radial-gradient(circle at top right, rgba(19, 78, 74, 0.5), transparent),
                       radial-gradient(circle at bottom left, rgba(55, 48, 163, 0.5), transparent);
@@ -15,133 +21,145 @@ body {
     padding: 1rem;
 }
 
-.container {
+/* --- Container Styling --- */
+
+/* Default styles for the main wrapper - can be minimal */
+.app-container {
+    /* No fixed width here anymore */
+}
+
+/* Styles specific to Login/Select/Create screens when they are VISIBLE */
+/* We target the app-container when a specific screen *inside* it is NOT hidden */
+/* This is a bit tricky, might be better to add a class to app-container based on state */
+
+/* --- Alternative: Style the inner screen divs directly --- */
+
+/* Styles for the login/select/create cards */
+#login-screen,
+#char-select-screen,
+#char-create-screen {
     background-color: rgba(31, 41, 55, 0.85);
     padding: 2rem;
     border-radius: 0.75rem;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-    /* --- Width Adjustment - Reinforce --- */
-    width: 400px; /* Fixed width */
-    max-width: 95%; /* Responsive fallback */
-    margin-left: auto;  /* Explicitly center */
-    margin-right: auto; /* Explicitly center */
-    /* --- End Width Adjustment --- */
+    width: 400px; /* Apply fixed width directly to these screens */
+    max-width: 95%;
+    margin-left: auto;
+    margin-right: auto;
     backdrop-filter: blur(8px);
     border: 1px solid rgba(75, 85, 99, 0.5);
 }
 
+/* Styles for the Town Screen Container */
+/* This is applied to the #town-screen div */
+.town-container {
+    width: 90%; /* Wider */
+    max-width: 1200px; /* Max width */
+    min-height: 85vh; /* Minimum height */
+    display: flex; /* Use flex for internal layout */
+    flex-direction: column;
+    background-color: rgba(17, 24, 39, 0.9); /* Darker */
+    border: 1px solid #374151;
+    border-radius: 0.5rem; /* Slightly smaller radius */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3); /* Stronger shadow */
+    margin-top: auto; /* Helps vertical centering if body align-items is removed/changed */
+    margin-bottom: auto;
+    overflow: hidden; /* Prevent content spill */
+}
+
+
+/* Title Styling */
 .title {
-    font-family: 'Orbitron', sans-serif;
-    text-align: center;
-    margin-bottom: 2rem;
-    font-size: 1.875rem; /* text-3xl */
-    line-height: 2.25rem;
-    color: #93c5fd;
+    font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 2rem;
+    font-size: 1.875rem; line-height: 2.25rem; color: #93c5fd;
     text-shadow: 0 0 8px rgba(147, 197, 253, 0.6);
 }
 
-/* Style inputs */
-input[type="email"],
-input[type="password"],
-input[type="text"] {
-    background-color: #374151;
-    border: 1px solid #4b5563;
-    color: #e5e7eb;
-    padding: 0.75rem 1rem;
-    border-radius: 0.375rem;
-    width: 100%;
-    margin-bottom: 1rem;
-    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    font-size: 1rem;
-}
-input:focus {
-    outline: none;
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4);
-}
+/* Form Group Styling */
+.form-group { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: #d1d5db; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 
-/* --- Improved Button Styling --- */
+/* Input Styling */
+input[type="email"], input[type="password"], input[type="text"] {
+    display: block; background-color: #374151; border: 1px solid #4b5563; color: #e5e7eb;
+    padding: 0.75rem 1rem; border-radius: 0.375rem; width: 100%;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; font-size: 1rem;
+}
+input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4); }
+
+/* --- General Button Styling --- */
 button {
-    /* Base styles */
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle top/left border */
-    border-radius: 0.375rem;
-    cursor: pointer;
-    font-weight: bold;
-    width: 100%; /* Default to full width */
-    margin-top: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.875rem;
-
-    /* Gradient & Shadow for depth */
-    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6)); /* Default blue gradient */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Outer shadow + inner highlight */
-
-    /* Transitions */
+    color: white; padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem; cursor: pointer; font-weight: bold; width: 100%;
+    margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;
+    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: background-image 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease-in-out, opacity 0.3s ease-in-out;
 }
-
 button:hover:not(:disabled) {
-    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb)); /* Lighter/darker gradient on hover */
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb));
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
-
 button:active:not(:disabled) {
-    transform: scale(0.98) translateY(1px); /* Press down effect */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 0, 0, 0.1); /* Less shadow when pressed */
-    background-image: linear-gradient(to top, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6)); /* Invert gradient slightly */
+    transform: scale(0.98) translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 0, 0, 0.1);
+    background-image: linear-gradient(to top, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
 }
-
-/* Disabled state */
 button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-image: linear-gradient(to bottom, #5a6b80, #4b5563); /* Gray gradient */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Minimal shadow */
-    border-color: rgba(150, 150, 150, 0.1);
+    opacity: 0.5; cursor: not-allowed; background-image: linear-gradient(to bottom, #5a6b80, #4b5563);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); border-color: rgba(150, 150, 150, 0.1);
 }
-
-/* Specific Button Colors (using CSS variables for gradients) */
+/* Button Color Variables */
 button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-bg-top: #5aa1f2; --button-hover-bg-bottom: #2563eb; }
+.primary-button { /* Uses default blue */ }
 .secondary-button { --button-bg-top: #6b7280; --button-bg-bottom: #4b5563; --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675; }
 .launch-button { --button-bg-top: #2db760; --button-bg-bottom: #16a34a; --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d; }
 .delete-button { --button-bg-top: #ef4444; --button-bg-bottom: #dc2626; --button-hover-bg-top: #f87171; --button-hover-bg-bottom: #b91c1c; }
 
-/* Style for the link-like button */
+/* Google Button Styling */
+.google-button {
+    background-color: #ffffff; background-image: none; color: #374151; border: 1px solid #d1d5db;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); text-transform: none; font-weight: 500;
+    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+}
+.google-button:hover:not(:disabled) { background-color: #f9fafb; border-color: #adb5bd; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); background-image: none; }
+.google-button:active:not(:disabled) { background-color: #f3f4f6; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); transform: scale(0.99); background-image: none; }
+.google-button:disabled { background-color: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; opacity: 0.7; background-image: none; box-shadow: none; }
+.google-icon { display: inline-block; vertical-align: middle; }
+
+/* Link Button Styling */
 .link-button {
-    background: none; background-image: none; border: none; box-shadow: none;
-    color: #93c5fd; text-transform: none; font-weight: normal; font-size: 0.875rem;
-    padding: 0.25rem 0; margin-top: 1rem; width: auto; display: inline-block;
-    text-decoration: underline;
+    background: none; background-image: none; border: none; box-shadow: none; color: #93c5fd;
+    text-transform: none; font-weight: normal; font-size: 0.875rem; padding: 0.25rem 0;
+    margin-top: 0.75rem; width: 100%; display: block; text-align: center; text-decoration: underline;
 }
 .link-button:hover:not(:disabled) { background: none; background-image: none; color: #bfdbfe; box-shadow: none; text-decoration: underline; }
 .link-button:active:not(:disabled) { transform: none; box-shadow: none; color: #60a5fa; }
 .link-button:disabled { background: none; background-image: none; box-shadow: none; color: #6b7280; text-decoration: none; opacity: 0.6; }
 
-/* --- End Improved Button Styling --- */
-
 /* Feedback & Error message styling */
-.feedback-message { color: #60a5fa; font-size: 0.875rem; margin-top: 0.5rem; margin-bottom: 0.5rem; text-align: center; min-height: 1.25rem; }
-.error-message { color: #f87171; font-size: 0.875rem; margin-top: 0.5rem; margin-bottom: 0.5rem; text-align: center; min-height: 1.25rem; }
-.hidden { display: none; }
+.feedback-message { color: #60a5fa; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; min-height: 1.25rem; }
+.error-message { color: #f87171; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; min-height: 1.25rem; }
+.hidden { display: none !important; }
+
+/* Divider Styling */
+.divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: #9ca3af; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #4b5563; }
+.divider:not(:empty)::before { margin-right: .5em; }
+.divider:not(:empty)::after { margin-left: .5em; }
+.divider span { font-size: 0.8rem; text-transform: uppercase; }
 
 /* Class selection buttons */
-.class-button {
-    background-color: #4b5563; margin: 0.5rem 0.25rem; width: auto; padding: 0.75rem 1rem; flex-grow: 1; min-width: 100px; text-transform: none; letter-spacing: normal; font-size: 0.875rem;
-    background-image: linear-gradient(to bottom, #6b7280, #4b5563); /* Apply gradient */
-}
+.class-selection-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+.class-button { margin: 0; width: auto; padding: 0.75rem 1rem; flex-grow: 1; min-width: 100px; text-transform: none; letter-spacing: normal; font-size: 0.875rem; background-image: linear-gradient(to bottom, #6b7280, #4b5563); }
 .class-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
-.class-button.selected {
-    background-image: linear-gradient(to bottom, #4a90e2, #3b82f6); /* Use primary blue gradient */
-    box-shadow: 0 0 0 2px #ffffff, 0 2px 4px rgba(0, 0, 0, 0.2); /* Add shadow to selected */
-    color: white; border-color: rgba(255, 255, 255, 0.3);
-}
+.class-button.selected { background-image: linear-gradient(to bottom, #4a90e2, #3b82f6); box-shadow: 0 0 0 2px #ffffff, 0 2px 4px rgba(0, 0, 0, 0.2); color: white; border-color: rgba(255, 255, 255, 0.3); }
 .class-button.selected:hover:not(:disabled) { background-image: linear-gradient(to bottom, #5aa1f2, #2563eb); }
 
 /* Character list styling */
-.character-list-container { max-height: 200px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.5); }
+.character-list-container { max-height: 200px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.5); margin-bottom: 1rem; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
+.no-characters-message { text-align: center; color: #9ca3af; padding: 1rem 0; margin: auto 0; }
 .character-list-item { background-color: #374151; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 0.375rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #4b5563; cursor: pointer; transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
 .character-list-item:last-child { margin-bottom: 0; }
 .character-list-item:hover { background-color: #4b5563; border-color: #6b7280; }
@@ -149,33 +167,79 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 .character-list-item.selected-char:hover { background-color: #2563eb; }
 .character-list-item span { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Action Buttons Area Below List */
-#character-actions {
-    border-top: 1px solid #4b5563;
-    padding-top: 1rem;
-    margin-top: 1rem;
-    /* Using flex classes from HTML: flex flex-col sm:flex-row justify-center gap-4 */
-}
-
-/* --- Adjust Action Buttons in Flex Container --- */
-#character-actions .action-button {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.8rem;
-    width: auto;      /* Override default width: 100% */
-    flex-grow: 0;     /* Prevent buttons from growing to fill space */
-    /* Set a max-width if needed, e.g., max-width: 150px; */
-}
-/* --- End Action Button Adjustment --- */
-
+/* Character Action Buttons Area */
+.character-actions-container { border-top: 1px solid #4b5563; padding-top: 1rem; margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+.character-actions-container .action-button { padding: 0.6rem 1.2rem; font-size: 0.8rem; width: auto; flex-grow: 0; margin-top: 0; }
 
 /* Inline Delete Confirmation Dialog */
-.delete-confirm-card { background-color: #4b5563; border: 1px solid #f87171; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem; }
-.delete-confirm-card p { color: #fecaca; font-weight: bold; margin-bottom: 0.75rem; /* Add space below text */ }
-.delete-confirm-card .action-button {
-    width: auto;
-    flex-grow: 1; /* Allow confirm/cancel to share space */
+.delete-confirm-card { background-color: #4b5563; border: 1px solid #f87171; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; }
+.delete-confirm-card p { color: #fecaca; font-weight: bold; margin-bottom: 0.75rem; }
+.dialog-button-group { display: flex; justify-content: center; gap: 1rem; }
+.delete-confirm-card .action-button { width: auto; flex-grow: 1; margin-top: 0; }
+
+/* Spacing for buttons below main actions on char select screen */
+#create-new-char-button, #logout-button { margin-top: 1rem; }
+
+/* --- TOWN SCREEN STYLES --- */
+
+/* Town Container (Wider Layout) */
+.town-container {
+    width: 90%; max-width: 1200px; min-height: 85vh; display: flex;
+    flex-direction: column; background-color: rgba(17, 24, 39, 0.9);
+    border: 1px solid #374151; border-radius: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    margin-top: auto; margin-bottom: auto; overflow: hidden;
+    /* Remove fixed width from app-container if needed */
+    /* This selector takes precedence over the general .app-container */
 }
 
+/* Town Header */
+.town-header {
+    padding: 0.75rem 1.5rem; background-color: rgba(31, 41, 55, 0.7);
+    border-bottom: 1px solid #4b5563; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 1rem; flex-shrink: 0;
+}
+.town-header-info { font-size: 0.9rem; color: #d1d5db; }
+.town-header-info .currency { margin-left: 1.5rem; font-weight: bold; color: #facc15; }
 
-/* Label styling */
-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: #d1d5db; }
+/* Town Navigation */
+.town-nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.town-nav-button {
+    background-image: none; background-color: transparent; border: 1px solid transparent;
+    border-bottom: 3px solid transparent; border-radius: 0.25rem 0.25rem 0 0;
+    padding: 0.5rem 1rem; margin-top: 0; width: auto; font-size: 0.875rem;
+    text-transform: none; color: #9ca3af; box-shadow: none; font-weight: 500;
+}
+.town-nav-button:hover:not(:disabled) { background-color: rgba(75, 85, 99, 0.3); color: #e5e7eb; box-shadow: none; background-image: none; }
+.town-nav-button.active { color: #ffffff; font-weight: bold; border-bottom: 3px solid #60a5fa; background-color: rgba(59, 130, 246, 0.1); }
+.town-logout-button {
+    background-image: linear-gradient(to bottom, #6b7280, #4b5563); padding: 0.4rem 0.8rem;
+    font-size: 0.75rem; width: auto; margin-left: 1rem; margin-top: 0;
+}
+.town-logout-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
+
+/* Town Main Content Area */
+.town-main-content { padding: 1.5rem; flex-grow: 1; overflow-y: auto; position: relative; }
+
+/* Town Panel Styling */
+.town-panel { animation: fadeIn 0.3s ease-in-out; }
+.town-panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.panel-title { font-family: 'Orbitron', sans-serif; font-size: 1.25rem; color: #93c5fd; margin-bottom: 1.5rem; border-bottom: 1px solid #4b5563; padding-bottom: 0.5rem; }
+
+/* Inventory Panel Specific Layout */
+.loadout-grid { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; }
+@media (max-width: 768px) { .loadout-grid { grid-template-columns: 1fr; } .character-preview-area { margin-bottom: 1.5rem; } }
+.character-preview-area h4, .inventory-area h4 { font-size: 1rem; color: #d1d5db; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Equipment Slots */
+.equipment-slots { display: grid; grid-template-areas: "head head" "weapon1 chest" "weapon2 legs" "accessory1 feet" "accessory2 ."; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+.equip-slot[data-slot="head"] { grid-area: head; } .equip-slot[data-slot="chest"] { grid-area: chest; } .equip-slot[data-slot="legs"] { grid-area: legs; } .equip-slot[data-slot="feet"] { grid-area: feet; } .equip-slot[data-slot="weapon1"] { grid-area: weapon1; } .equip-slot[data-slot="weapon2"] { grid-area: weapon2; } .equip-slot[data-slot="accessory1"] { grid-area: accessory1; } .equip-slot[data-slot="accessory2"] { grid-area: accessory2; }
+.equip-slot { border: 1px dashed #4b5563; background-color: rgba(31, 41, 55, 0.5); min-height: 50px; border-radius: 0.25rem; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; color: #6b7280; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; padding: 0.25rem; text-align: center; }
+.equip-slot:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
+
+/* Inventory Grid */
+.inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 0.25rem; border: 1px solid #4b5563; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.7); border-radius: 0.25rem; min-height: 250px; }
+.inv-slot { border: 1px solid #374151; background-color: rgba(31, 41, 55, 0.5); aspect-ratio: 1 / 1; border-radius: 0.125rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; min-width: 45px; min-height: 45px; }
+.inv-slot:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
+
