@@ -7,124 +7,177 @@
 
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #111827;
-    color: #e5e7eb;
+    background-color: #111827; /* Dark blue-grey background */
+    color: #e5e7eb; /* Light grey text */
     display: flex;
     justify-content: center;
-    align-items: center; /* Center login/select vertically */
+    align-items: center; /* Center login/select vertically initially */
     min-height: 100vh;
-    background-image: radial-gradient(circle at top right, rgba(19, 78, 74, 0.5), transparent),
-                      radial-gradient(circle at bottom left, rgba(55, 48, 163, 0.5), transparent);
+    /* Subtle gradient background */
+    background-image: radial-gradient(circle at top right, rgba(19, 78, 74, 0.3), transparent),
+                      radial-gradient(circle at bottom left, rgba(55, 48, 163, 0.3), transparent);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     padding: 1rem;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* --- Container Styling --- */
-.app-container { /* No fixed width here */ }
+
+/* Default styles for the main wrapper */
+.app-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Center content vertically too */
+}
 
 /* Styles for the login/select/create cards */
 #login-screen,
 #char-select-screen,
 #char-create-screen {
-    background-color: rgba(31, 41, 55, 0.85);
+    background-color: rgba(31, 41, 55, 0.85); /* Semi-transparent dark grey-blue */
     padding: 2rem;
     border-radius: 0.75rem;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-    width: 400px; /* Apply fixed width directly to these screens */
+    width: 400px;
     max-width: 95%;
     margin-left: auto;
     margin-right: auto;
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(75, 85, 99, 0.5);
+    backdrop-filter: blur(8px); /* Frosted glass effect */
+    border: 1px solid rgba(75, 85, 99, 0.5); /* Subtle border */
 }
 
 /* Styles for the Town Screen Container */
 .town-container {
-    width: 90%; max-width: 1200px; min-height: 85vh; display: flex;
-    flex-direction: column; background-color: rgba(17, 24, 39, 0.9);
-    border: 1px solid #374151; border-radius: 0.5rem;
+    width: 90%;
+    max-width: 1200px;
+    min-height: 80vh; /* Adjusted height */
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(17, 24, 39, 0.9); /* Darker blue-grey */
+    border: 1px solid #374151;
+    border-radius: 0.5rem;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-    margin-top: auto; margin-bottom: auto; overflow: hidden;
+    margin-top: auto;
+    margin-bottom: auto;
+    overflow: hidden; /* Prevent content spill */
 }
 
 /* Title Styling */
 .title {
-    font-family: 'Orbitron', sans-serif; text-align: center; margin-bottom: 2rem;
-    font-size: 1.875rem; line-height: 2.25rem; color: #93c5fd;
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.875rem; /* 30px */
+    line-height: 2.25rem; /* 36px */
+    color: #93c5fd; /* Light blue */
     text-shadow: 0 0 8px rgba(147, 197, 253, 0.6);
 }
 
 /* Form Group Styling */
-.form-group { margin-bottom: 1rem; }
-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: #d1d5db; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+.form-group {
+    margin-bottom: 1rem;
+}
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+    color: #d1d5db; /* Lighter grey */
+}
+.sr-only { /* For accessibility */
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border-width: 0;
+}
 
 /* Input Styling */
-input[type="email"], input[type="password"], input[type="text"] {
-    display: block; background-color: #374151; border: 1px solid #4b5563; color: #e5e7eb;
-    padding: 0.75rem 1rem; border-radius: 0.375rem; width: 100%;
-    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out; font-size: 1rem;
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    display: block;
+    background-color: #374151; /* Medium grey-blue */
+    border: 1px solid #4b5563; /* Slightly lighter border */
+    color: #e5e7eb;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem; /* 6px */
+    width: 100%;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    font-size: 1rem; /* 16px */
 }
-input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4); }
+input:focus {
+    outline: none;
+    border-color: #60a5fa; /* Brighter blue focus */
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.4);
+}
 
 /* --- General Button Styling --- */
 button {
-    color: white; padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.375rem; cursor: pointer; font-weight: bold; width: 100%;
-    margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem;
-    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.875rem;
+    /* Default Gradient */
+    --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6;
+    --button-hover-bg-top: #5aa1f2; --button-hover-bg-bottom: #2563eb;
+    background-image: linear-gradient(to bottom, var(--button-bg-top), var(--button-bg-bottom));
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: background-image 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease-in-out, opacity 0.3s ease-in-out;
 }
 button:hover:not(:disabled) {
-    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb));
+    background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom));
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 button:active:not(:disabled) {
     transform: scale(0.98) translateY(1px);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(0, 0, 0, 0.1);
-    background-image: linear-gradient(to top, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
+    background-image: linear-gradient(to top, var(--button-bg-top), var(--button-bg-bottom)); /* Invert gradient slightly */
 }
 button:disabled {
-    opacity: 0.5; cursor: not-allowed; background-image: linear-gradient(to bottom, #5a6b80, #4b5563);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); border-color: rgba(150, 150, 150, 0.1);
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-image: linear-gradient(to bottom, #5a6b80, #4b5563); /* Grey gradient */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-color: rgba(150, 150, 150, 0.1);
 }
-/* Button Color Variables */
-button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-bg-top: #5aa1f2; --button-hover-bg-bottom: #2563eb; }
-.primary-button { /* Uses default blue */ }
-.secondary-button { --button-bg-top: #6b7280; --button-bg-bottom: #4b5563; --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675; }
-.launch-button { --button-bg-top: #2db760; --button-bg-bottom: #16a34a; --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d; }
-.delete-button { --button-bg-top: #ef4444; --button-bg-bottom: #dc2626; --button-hover-bg-top: #f87171; --button-hover-bg-bottom: #b91c1c; }
 
-/* Google Button Styling */
-.google-button {
-    background-color: #ffffff; background-image: none; color: #374151; border: 1px solid #d1d5db;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); text-transform: none; font-weight: 500;
-    display: flex; justify-content: center; align-items: center; gap: 0.5rem;
-}
+/* Specific Button Types */
+.primary-button { /* Uses default blue gradient */ }
+.secondary-button { --button-bg-top: #6b7280; --button-bg-bottom: #4b5563; --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675; } /* Grey */
+.launch-button { --button-bg-top: #2db760; --button-bg-bottom: #16a34a; --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d; } /* Green */
+.delete-button { --button-bg-top: #ef4444; --button-bg-bottom: #dc2626; --button-hover-bg-top: #f87171; --button-hover-bg-bottom: #b91c1c; } /* Red */
+
+/* Google Button */
+.google-button { background-color: #ffffff; background-image: none; color: #374151; border: 1px solid #d1d5db; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); text-transform: none; font-weight: 500; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
 .google-button:hover:not(:disabled) { background-color: #f9fafb; border-color: #adb5bd; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); background-image: none; }
 .google-button:active:not(:disabled) { background-color: #f3f4f6; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); transform: scale(0.99); background-image: none; }
 .google-button:disabled { background-color: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; opacity: 0.7; background-image: none; box-shadow: none; }
 .google-icon { display: inline-block; vertical-align: middle; }
 
-/* Link Button Styling */
-.link-button {
-    background: none; background-image: none; border: none; box-shadow: none; color: #93c5fd;
-    text-transform: none; font-weight: normal; font-size: 0.875rem; padding: 0.25rem 0;
-    margin-top: 0.75rem; width: 100%; display: block; text-align: center; text-decoration: underline;
-}
+/* Link Button */
+.link-button { background: none; background-image: none; border: none; box-shadow: none; color: #93c5fd; text-transform: none; font-weight: normal; font-size: 0.875rem; padding: 0.25rem 0; margin-top: 0.75rem; width: 100%; display: block; text-align: center; text-decoration: underline; }
 .link-button:hover:not(:disabled) { background: none; background-image: none; color: #bfdbfe; box-shadow: none; text-decoration: underline; }
 .link-button:active:not(:disabled) { transform: none; box-shadow: none; color: #60a5fa; }
 .link-button:disabled { background: none; background-image: none; box-shadow: none; color: #6b7280; text-decoration: none; opacity: 0.6; }
 
-/* Feedback & Error message styling */
+/* Feedback & Error Messages */
 .feedback-message { color: #60a5fa; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; min-height: 1.25rem; }
 .error-message { color: #f87171; font-size: 0.875rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; min-height: 1.25rem; }
 .hidden { display: none !important; }
 
-/* Divider Styling */
+/* Divider */
 .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: #9ca3af; }
 .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #4b5563; }
 .divider:not(:empty)::before { margin-right: .5em; }
@@ -132,75 +185,18 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 .divider span { font-size: 0.8rem; text-transform: uppercase; }
 
 /* --- Class Selection Styles --- */
-.class-selection-grid {
-    display: grid;
-    /* Create 2 columns, adjust minmax for desired card width */
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem; /* Space between cards */
-    margin-bottom: 1.5rem; /* Space below the grid */
-}
+.class-selection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.class-card { background-color: #374151; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 1rem; display: flex; flex-direction: column; transition: border-color 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+.class-card:hover { border-color: #6b7280; }
+.class-card.selected { border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4); }
+.class-title { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: bold; color: #e5e7eb; margin-bottom: 0.5rem; text-align: center; }
+.class-description { font-size: 0.8rem; color: #d1d5db; line-height: 1.4; flex-grow: 1; margin-bottom: 0.75rem; text-align: center; }
+.class-select-button { padding: 0.4rem 1rem; font-size: 0.75rem; margin-top: auto; width: 100%; background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6)); }
+.class-select-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb)); }
+.class-card.selected .class-select-button { background-image: linear-gradient(to bottom, #2db760, #16a34a); --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d; }
+.class-card.selected .class-select-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom)); }
 
-.class-card {
-    background-color: #374151; /* Card background */
-    border: 1px solid #4b5563;
-    border-radius: 0.375rem;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column; /* Stack content vertically */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer; /* Indicate card is clickable (optional) */
-}
-
-.class-card:hover {
-    border-color: #6b7280;
-}
-
-.class-card.selected { /* Style for the selected card */
-    border-color: #60a5fa; /* Blue border */
-    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4); /* Blue glow */
-}
-
-.class-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1rem;
-    font-weight: bold;
-    color: #e5e7eb; /* Light text */
-    margin-bottom: 0.5rem;
-    text-align: center;
-}
-
-.class-description {
-    font-size: 0.8rem;
-    color: #d1d5db; /* Lighter gray text */
-    line-height: 1.4;
-    flex-grow: 1; /* Allow description to take up space */
-    margin-bottom: 0.75rem;
-    text-align: center;
-}
-
-.class-select-button {
-    /* Use general button styles but maybe smaller */
-    padding: 0.4rem 1rem;
-    font-size: 0.75rem;
-    margin-top: auto; /* Push button to bottom */
-    width: 100%; /* Button takes full card width */
-    /* Use primary button colors */
-    background-image: linear-gradient(to bottom, var(--button-bg-top, #4a90e2), var(--button-bg-bottom, #3b82f6));
-}
-.class-select-button:hover:not(:disabled) {
-    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #5aa1f2), var(--button-hover-bg-bottom, #2563eb));
-}
-/* Style button within selected card */
-.class-card.selected .class-select-button {
-    background-image: linear-gradient(to bottom, #2db760, #16a34a); /* Green when selected */
-    --button-hover-bg-top: #3ddc76; --button-hover-bg-bottom: #15803d;
-}
-.class-card.selected .class-select-button:hover:not(:disabled) {
-    background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom));
-}
-/* --- End Class Selection Styles --- */
-
-/* Character list styling */
+/* --- Character Select Styles --- */
 .character-list-container { max-height: 200px; overflow-y: auto; border: 1px solid #4b5563; border-radius: 0.375rem; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.5); margin-bottom: 1rem; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
 .no-characters-message { text-align: center; color: #9ca3af; padding: 1rem 0; margin: auto 0; }
 .character-list-item { background-color: #374151; padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 0.375rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #4b5563; cursor: pointer; transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out; }
@@ -209,430 +205,167 @@ button { --button-bg-top: #4a90e2; --button-bg-bottom: #3b82f6; --button-hover-b
 .character-list-item.selected-char { background-color: #3b82f6; border-color: #93c5fd; color: white; }
 .character-list-item.selected-char:hover { background-color: #2563eb; }
 .character-list-item span { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Character Action Buttons Area */
 .character-actions-container { border-top: 1px solid #4b5563; padding-top: 1rem; margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 .character-actions-container .action-button { padding: 0.6rem 1.2rem; font-size: 0.8rem; width: auto; flex-grow: 0; margin-top: 0; }
-
-/* Inline Delete Confirmation Dialog */
 .delete-confirm-card { background-color: #4b5563; border: 1px solid #f87171; border-radius: 0.5rem; padding: 1rem; margin-top: 1rem; margin-bottom: 1rem; text-align: center; }
 .delete-confirm-card p { color: #fecaca; font-weight: bold; margin-bottom: 0.75rem; }
 .dialog-button-group { display: flex; justify-content: center; gap: 1rem; }
 .delete-confirm-card .action-button { width: auto; flex-grow: 1; margin-top: 0; }
-
-/* Spacing for buttons below main actions on char select screen */
 #create-new-char-button, #logout-button { margin-top: 1rem; }
 
 /* --- TOWN SCREEN STYLES --- */
-
-/* Town Header */
-.town-header {
-    padding: 0.75rem 1.5rem; background-color: rgba(31, 41, 55, 0.7);
-    border-bottom: 1px solid #4b5563; display: flex; justify-content: space-between;
-    align-items: center; flex-wrap: wrap; gap: 1rem; flex-shrink: 0;
-}
+.town-header { padding: 0.75rem 1.5rem; background-color: rgba(31, 41, 55, 0.7); border-bottom: 1px solid #4b5563; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; }
 .town-header-info { font-size: 0.9rem; color: #d1d5db; }
-.town-header-info .currency { margin-left: 1.5rem; font-weight: bold; color: #facc15; }
-
-/* Town Navigation */
+.town-header-info .currency { margin-left: 1.5rem; font-weight: bold; color: #facc15; } /* Gold color */
 .town-nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.town-nav-button {
-    background-image: none; background-color: transparent; border: 1px solid transparent;
-    border-bottom: 3px solid transparent; border-radius: 0.25rem 0.25rem 0 0;
-    padding: 0.5rem 1rem; margin-top: 0; width: auto; font-size: 0.875rem;
-    text-transform: none; color: #9ca3af; box-shadow: none; font-weight: 500;
-}
+.town-nav-button { background-image: none; background-color: transparent; border: 1px solid transparent; border-bottom: 3px solid transparent; border-radius: 0.25rem 0.25rem 0 0; padding: 0.5rem 1rem; margin-top: 0; width: auto; font-size: 0.875rem; text-transform: none; color: #9ca3af; box-shadow: none; font-weight: 500; }
 .town-nav-button:hover:not(:disabled) { background-color: rgba(75, 85, 99, 0.3); color: #e5e7eb; box-shadow: none; background-image: none; }
 .town-nav-button.active { color: #ffffff; font-weight: bold; border-bottom: 3px solid #60a5fa; background-color: rgba(59, 130, 246, 0.1); }
-.town-logout-button {
-    background-image: linear-gradient(to bottom, #6b7280, #4b5563); padding: 0.4rem 0.8rem;
-    font-size: 0.75rem; width: auto; margin-left: 1rem; margin-top: 0;
-}
+.town-logout-button { background-image: linear-gradient(to bottom, #6b7280, #4b5563); padding: 0.4rem 0.8rem; font-size: 0.75rem; width: auto; margin-left: 1rem; margin-top: 0; }
 .town-logout-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, #7c8796, #5a6675); }
-.town-switch-button { /* Style for Switch Char button */
-    background-image: linear-gradient(to bottom, #a855f7, #9333ea); /* Purple gradient */
-    --button-hover-bg-top: #c084fc; --button-hover-bg-bottom: #a855f7; /* Lighter purple hover */
-    padding: 0.4rem 0.8rem; font-size: 0.75rem; width: auto; margin-left: 0.5rem; margin-top: 0;
-}
-.town-switch-button:hover:not(:disabled) {
-     background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom));
-}
-
-/* Town Main Content Area */
+.town-switch-button { background-image: linear-gradient(to bottom, #a855f7, #9333ea); --button-hover-bg-top: #c084fc; --button-hover-bg-bottom: #a855f7; padding: 0.4rem 0.8rem; font-size: 0.75rem; width: auto; margin-left: 0.5rem; margin-top: 0; } /* Purple */
+.town-switch-button:hover:not(:disabled) { background-image: linear-gradient(to bottom, var(--button-hover-bg-top), var(--button-hover-bg-bottom)); }
 .town-main-content { padding: 1.5rem; flex-grow: 1; overflow-y: auto; position: relative; }
-
-/* Town Panel Styling */
 .town-panel { animation: fadeIn 0.3s ease-in-out; }
 .town-panel.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .panel-title { font-family: 'Orbitron', sans-serif; font-size: 1.25rem; color: #93c5fd; margin-bottom: 1.5rem; border-bottom: 1px solid #4b5563; padding-bottom: 0.5rem; }
 
-/* Inventory Panel Specific Layout */
+/* Inventory Panel */
 .loadout-grid { display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; }
 @media (max-width: 768px) { .loadout-grid { grid-template-columns: 1fr; } .character-preview-area { margin-bottom: 1.5rem; } }
 .character-preview-area h4, .inventory-area h4 { font-size: 1rem; color: #d1d5db; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
-
-/* Equipment Slots */
 .equipment-slots { display: grid; grid-template-areas: "head head" "weapon1 chest" "weapon2 legs" "accessory1 feet" "accessory2 ."; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 .equip-slot[data-slot="head"] { grid-area: head; } .equip-slot[data-slot="chest"] { grid-area: chest; } .equip-slot[data-slot="legs"] { grid-area: legs; } .equip-slot[data-slot="feet"] { grid-area: feet; } .equip-slot[data-slot="weapon1"] { grid-area: weapon1; } .equip-slot[data-slot="weapon2"] { grid-area: weapon2; } .equip-slot[data-slot="accessory1"] { grid-area: accessory1; } .equip-slot[data-slot="accessory2"] { grid-area: accessory2; }
 .equip-slot { border: 1px dashed #4b5563; background-color: rgba(31, 41, 55, 0.5); min-height: 50px; border-radius: 0.25rem; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; color: #6b7280; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; padding: 0.25rem; text-align: center; }
 .equip-slot:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
-
-/* Inventory Grid */
 .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 0.25rem; border: 1px solid #4b5563; padding: 0.5rem; background-color: rgba(17, 24, 39, 0.7); border-radius: 0.25rem; min-height: 250px; }
-.inv-slot { border: 1px solid #374151; background-color: rgba(31, 41, 55, 0.5); aspect-ratio: 1 / 1; border-radius: 0.125rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; min-width: 45px; min-height: 45px; }
+.inv-slot { border: 1px solid #374151; background-color: rgba(31, 41, 55, 0.5); aspect-ratio: 1 / 1; border-radius: 0.125rem; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; min-width: 45px; min-height: 45px; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; }
 .inv-slot:hover { background-color: rgba(55, 65, 81, 0.7); border-color: #6b7280; }
 
-/* Overview Panel Specific Styles (Example) */
-#overview-panel p { margin-bottom: 0.75rem; line-height: 1.6; color: #d1d5db; }
-#overview-panel #overview-char-name { font-weight: bold; color: #e5e7eb; }
+/* Map Panel */
+.map-area { text-align: center; }
+.map-area p { margin-bottom: 1rem; color: #9ca3af; }
+#map-node-list { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.map-node { color: white; padding: 0.75rem 1.5rem; border: 1px solid #4b5563; border-radius: 0.375rem; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.875rem; background-color: #374151; transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; }
+.map-node:hover:not(:disabled) { background-color: #4b5563; border-color: #6b7280; }
+.map-node:disabled { opacity: 0.5; cursor: not-allowed; background-color: #4b5563; border-color: #374151; color: #9ca3af; }
+.map-node.selected { border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4); background-color: #374151; }
+.map-area #enter-zone-button { width: auto; padding: 0.75rem 2rem; margin-top: 1rem; }
 
-/* Map Panel Styles */
-.map-area {
-    /* Basic container for map elements */
-    padding: 1rem;
-    border: 1px solid #374151;
-    border-radius: 0.25rem;
-    background-color: rgba(17, 24, 39, 0.5);
-    min-height: 300px; /* Give it some space */
-}
-.map-area p {
-    margin-bottom: 1rem;
-    color: #9ca3af;
-}
-.map-node {
-    /* Style the clickable node */
-    display: inline-block; /* Or block */
-    width: auto; /* Size based on content */
-    padding: 0.8rem 1.5rem;
-    margin-right: 1rem;
-    margin-bottom: 1rem;
-    /* Use secondary button colors or unique style */
-    --button-bg-top: #6b7280; --button-bg-bottom: #4b5563;
-    --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675;
-    /* Re-apply gradient */
-    background-image: linear-gradient(to bottom, var(--button-bg-top, #6b7280), var(--button-bg-bottom, #4b5563));
-}
-.map-node:hover:not(:disabled) {
-    background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #7c8796), var(--button-hover-bg-bottom, #5a6675));
-}
-/* Add selected state for map node later if needed */
-/* Example:
-.map-node.selected {
-    border: 2px solid #60a5fa;
-    box-shadow: 0 0 5px #60a5fa;
-}
-*/
+/* Skills Panel */
+.skills-content p { margin-bottom: 0.75rem; color: #9ca3af; }
+#learned-skills-list { border: 1px solid #374151; background-color: rgba(17, 24, 39, 0.5); border-radius: 0.25rem; padding: 1rem; min-height: 100px; margin-bottom: 1rem;}
+.skill-item { background-color: rgba(55, 65, 81, 0.5); padding: 0.75rem; border-radius: 0.25rem; margin-bottom: 0.5rem; border: 1px solid #4b5563; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; display: flex; flex-direction: column; gap: 0.3rem; }
+.skill-item:hover { background-color: rgba(75, 85, 99, 0.7); }
+.skill-item.selected-for-assignment { border-color: #facc15; background-color: rgba(75, 85, 99, 0.7); cursor: default; }
+.skill-name { font-weight: bold; color: #e5e7eb; font-size: 0.95rem; }
+.skill-tags { font-size: 0.7rem; font-style: italic; color: #9ca3af; text-transform: uppercase; margin-bottom: 0.1rem; }
+.skill-details { font-size: 0.75rem; color: #d1d5db; line-height: 1.4; border-top: 1px solid #4b5563; padding-top: 0.3rem; margin-top: 0.2rem; }
+.skill-prop { font-weight: 500; color: #a5b4fc; }
+.skill-description-text { font-size: 0.8rem; color: #b0b8c4; line-height: 1.5; margin-top: 0.2rem; }
+.skill-item.missing-data { border-color: #f87171; }
+.mt-4 { margin-top: 1rem; }
+.skill-assignment-container { display: flex; gap: 0.5rem; background-color: rgba(31, 41, 55, 0.8); padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #4b5563; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); justify-content: center; margin-top: 0.5rem; }
+.assign-skill-slot { width: 60px; height: 60px; background-color: rgba(17, 24, 39, 0.7); border: 1px solid #6b7280; border-radius: 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease; text-align: center; }
+.assign-skill-slot:hover { border-color: #9ca3af; background-color: rgba(55, 65, 81, 0.6); }
+.assign-skill-slot span { position: absolute; bottom: 2px; right: 4px; font-size: 0.65rem; font-weight: bold; color: rgba(209, 213, 219, 0.7); user-select: none; z-index: 2; }
+.assign-skill-slot.mouse-skill span { font-size: 0.6rem; }
+.assign-skill-slot .assigned-skill-name { font-size: 0.7rem; color: #e5e7eb; padding: 0 2px; line-height: 1.2; position: relative; z-index: 2; }
+.assign-skill-slot .assigned-skill-name.empty { color: #6b7280; font-style: italic; }
+.assign-skill-slot.selected-for-assignment { border-color: #facc15; box-shadow: 0 0 5px rgba(250, 204, 21, 0.5); }
 
-/* --- NEW GAME SCREEN STYLES --- */
+/* --- COMBAT SCREEN STYLES --- */
+.combat-container { width: 95%; max-width: 1400px; min-height: 80vh; max-height: 90vh; display: flex; flex-direction: column; background-color: rgba(25, 15, 15, 0.9); border: 1px solid #553030; border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(100, 0, 0, 0.5), 0 8px 10px -6px rgba(100, 0, 0, 0.3); margin-top: auto; margin-bottom: auto; overflow: hidden; animation: fadeIn 0.3s ease-in-out; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;}
+.combat-header { padding: 0.75rem 1.5rem; background-color: rgba(50, 30, 30, 0.7); border-bottom: 1px solid #704040; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+#combat-zone-name { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #f87171; text-shadow: 0 0 8px rgba(248, 113, 113, 0.6); }
+.exit-combat-button { padding: 0.5rem 1rem; font-size: 0.8rem; width: auto; margin-top: 0; }
 
-.game-container {
-    width: 100%; /* Take full width */
-    height: 100vh; /* Take full viewport height */
-    max-width: none; /* Override any previous max-width */
-    padding: 0; /* No padding for the game container itself */
-    margin: 0; /* No margin */
-    display: flex; /* Use flex for centering canvas maybe? Or just position canvas */
-    justify-content: center;
-    align-items: center;
-    background-color: #000; /* Black background for game area */
-    position: relative; /* For positioning UI elements like exit button */
-    overflow: hidden; /* Hide anything outside the game area */
-}
+/* Main Content Area - 3-Column Grid */
+.combat-main-content { flex-grow: 1; padding: 1rem; overflow: hidden; display: grid; grid-template-columns: 200px 1fr 200px; gap: 1rem; align-items: stretch; }
+.combat-sidebar { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 1rem; padding: 1rem 0; }
+.player-indicator-area { /* Centering handled by sidebar */ }
+.player-indicator { width: 50px; height: 50px; background-color: #4b5563; border: 2px solid #9ca3af; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; color: #e5e7eb; text-shadow: 1px 1px 2px black; flex-shrink: 0; }
+.placeholder-card { width: 100%; min-height: 200px; background-color: rgba(31, 41, 55, 0.5); border: 1px dashed rgba(75, 85, 99, 0.7); border-radius: 0.375rem; display: flex; justify-content: center; align-items: center; padding: 1rem; text-align: center; color: #6b7280; font-style: italic; }
 
-#game-canvas {
-    display: block; /* Remove extra space below canvas */
-    background-color: #222; /* Dark gray canvas background */
-    /* Width/height will be set by JS, but ensure it scales visually */
-    max-width: 100%;
-    max-height: 100%;
-}
-
-.exit-game-button { /* Simple styling for an exit button */
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    width: auto;
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    /* Use secondary button colors */
-     --button-bg-top: #6b7280; --button-bg-bottom: #4b5563;
-     --button-hover-bg-top: #7c8796; --button-hover-bg-bottom: #5a6675;
-     /* Re-apply gradient since position:absolute might affect cascade */
-     background-image: linear-gradient(to bottom, var(--button-bg-top, #6b7280), var(--button-bg-bottom, #4b5563));
-}
-.exit-game-button:hover:not(:disabled) {
-     background-image: linear-gradient(to bottom, var(--button-hover-bg-top, #7c8796), var(--button-hover-bg-bottom, #5a6675));
-}
-
-/* Prevent body scrolling when game is active */
-/* --- Find this existing rule --- */
-/* Prevent body scrolling when game is active */
-body.game-active {
-    overflow: hidden; /* This prevents scrollbars on the body */
-    padding: 0; /* <-- Add this line to remove body padding */
-}
-
-/* Ensure game container takes exactly viewport height */
-.game-container {
-    width: 100%;
-    height: 100vh; /* Use viewport height */
-    max-width: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #000;
-    position: relative;
-    overflow: hidden; /* Hide anything outside this container too */
-}
-
-/* Ensure canvas fills container - width/height set by JS */
-#game-canvas {
-    display: block; /* Important to prevent extra space */
-    background-color: #222;
-    max-width: 100%;
-    max-height: 100%;
-    /* Remove explicit width/height from CSS if present */
-}
-
-/* --- NEW Minimap Styles --- */
-#minimap-container {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 150px; /* Adjust size as needed */
-    height: 100px; /* Adjust size as needed */
-    background-color: rgba(17, 24, 39, 0.7); /* Dark semi-transparent background */
-    border: 1px solid #4b5563;
-    border-radius: 0.25rem;
-    overflow: hidden; /* Hide parts of viewport rect outside minimap */
-    z-index: 5; /* Ensure it's above the canvas but below maybe other UI */
-}
-
-#minimap-viewport {
-    position: absolute; /* Position relative to minimap container */
-    border: 1px solid #facc15; /* Yellow border for visibility */
-    background-color: rgba(250, 204, 21, 0.2); /* Transparent yellow fill */
-    /* Width, height, top, left will be set by JS */
-}
-
-/* --- Add these styles to style.css --- */
-
-/* Style for player dot on minimap */
-.minimap-dot {
-    /* Style defined inline by JS for position/size/color */
-    /* Add box-shadow or border for visibility if needed */
-    /* box-shadow: 0 0 2px white; */
-}
-
-/* Style for environment objects on minimap */
-.minimap-obj {
-     /* Style defined inline by JS for position/size/color */
-     border-radius: 1px; /* Slight rounding */
-}
-
-/* Ensure viewport is above other minimap elements */
-#minimap-viewport {
-    z-index: 2;
-}
-
-/* --- End of new styles --- */
-/* --- END Minimap Styles --- */
-/* ... rest of existing styles ... */
-/* --- END GAME SCREEN STYLES --- */
-
-/* --- NEW Tooltip Styles --- */
-
-.item-tooltip {
-    position: absolute; /* Position relative to viewport or a positioned ancestor */
-    z-index: 100; /* Ensure it's on top */
-    background-color: rgba(17, 24, 39, 0.95); /* Dark background */
-    border: 1px solid #818cf8; /* Indigo border */
-    border-radius: 0.375rem; /* rounded-md */
-    padding: 0.75rem; /* p-3 */
-    width: auto; /* Size based on content */
-    max-width: 300px; /* Prevent it from getting too wide */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Drop shadow */
-    color: #e5e7eb; /* Light text */
-    font-size: 0.8rem; /* Smaller text */
-    line-height: 1.4;
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
-    opacity: 0; /* Start hidden */
-    transform: scale(0.95); /* Start slightly scaled down */
-    transition: opacity 0.1s ease-out, transform 0.1s ease-out; /* Fade/scale transition */
-}
-
-.item-tooltip.visible {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Tooltip Content Styling (Example) */
-.item-tooltip .item-name {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #a5b4fc; /* Lighter indigo */
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid #4b5563;
-    padding-bottom: 0.3rem;
-}
-
-.item-tooltip .item-type {
-    font-style: italic;
-    color: #9ca3af; /* gray-400 */
-    margin-bottom: 0.5rem;
-    display: block; /* Ensure it's on its own line */
-}
-
-.item-tooltip .item-stat {
-    display: block; /* Each stat on its own line */
-    margin-bottom: 0.2rem;
-    color: #d1d5db; /* Slightly dimmer text */
-}
-.item-tooltip .item-stat .value {
-    color: #ffffff; /* White value */
-    font-weight: 500;
-}
-
-
-/* --- End Tooltip Styles --- */
-
-/* --- NEW Skills Panel Styles --- */
-
-.skills-content {
-    /* Layout for content within the skills panel */
-}
-
-.skills-content p {
-    margin-bottom: 0.75rem;
-    color: #9ca3af; /* gray-400 */
-}
-
-#learned-skills-list {
-    /* Container for learned skill items */
-    border: 1px solid #374151;
-    background-color: rgba(17, 24, 39, 0.5);
-    border-radius: 0.25rem;
-    padding: 1rem;
-    min-height: 100px;
-}
-
-.skill-item { /* Style for displaying a single skill */
-    background-color: rgba(55, 65, 81, 0.5);
-    padding: 0.75rem;
-    border-radius: 0.25rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #4b5563;
-}
-
-.skill-item .skill-name {
-    font-weight: bold;
-    color: #e5e7eb;
-    font-size: 0.9rem;
-}
-
-.skill-item .skill-desc {
-    font-size: 0.8rem;
-    color: #d1d5db;
-    margin-top: 0.25rem;
-}
-
-/* Utility margin class (if needed elsewhere) */
-.mt-4 {
-    margin-top: 1rem; /* Equivalent of Tailwind's mt-4 */
-}
-
-/* --- END Skills Panel Styles --- */
-
-/* --- NEW Skill Assignment Styles --- */
-
-/* Container for the assignable slots */
-.skill-assignment-container {
-    display: flex;
-    gap: 0.5rem; /* Space between slots */
-    background-color: rgba(31, 41, 55, 0.8); /* Match game bar background */
+/* Enemy Grid Container */
+.enemy-grid-container {
+    display: grid;
+    /* grid-template-columns/rows set by JS */
+    gap: 0.75rem;
     padding: 0.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid #4b5563;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    justify-content: center; /* Center slots if container is wider */
-    margin-top: 0.5rem;
+    width: fit-content;
+    margin: 0 auto;
+    align-self: center;
+    position: relative; /* For absolute positioned children */
 }
 
-/* Individual assignable slot */
-.assign-skill-slot {
-    width: 60px; /* Match game bar slot size */
-    height: 60px;
-    background-color: rgba(17, 24, 39, 0.7);
-    border: 1px solid #6b7280;
-    border-radius: 0.25rem;
-    display: flex;
-    flex-direction: column; /* Stack icon/name and key */
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    position: relative;
-    overflow: hidden;
-    cursor: pointer; /* Indicate clickable */
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    text-align: center;
+/* Enemy Card */
+.enemy-card { background-color: rgba(80, 40, 40, 0.7); border: 1px solid #b91c1c; border-radius: 0.375rem; aspect-ratio: 1 / 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0.5rem; text-align: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s, border-color 0.2s; cursor: crosshair; position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+.enemy-card:hover { transform: scale(1.05); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); border-color: #f87171; }
+.enemy-name { font-size: 0.8rem; font-weight: bold; color: #fecaca; margin-bottom: 0.25rem; }
+.enemy-hp-bar { width: 80%; height: 8px; background-color: #4b5563; border: 1px solid #1f2937; border-radius: 4px; overflow: hidden; }
+.enemy-hp-fill { width: 100%; height: 100%; background-color: #16a34a; transition: width 0.3s ease; }
+.enemy-hp-text { font-size: 0.7rem; margin-top: 0.25rem; }
+.grid-cell.empty-cell { background-color: rgba(31, 41, 55, 0.3); border: 1px dashed rgba(75, 85, 99, 0.5); border-radius: 0.375rem; aspect-ratio: 1 / 1; }
+
+/* Defeated Enemy Cell Styling */
+.enemy-card.enemy-remains { background-color: rgba(40, 30, 30, 0.4); border: 1px solid rgba(80, 50, 50, 0.6); cursor: default; padding: 0; aspect-ratio: 1 / 1; opacity: 1 !important; /* Keep visible after fade */ }
+.enemy-card.defeated { animation: fade-out-opacity 1s forwards; pointer-events: none; }
+@keyframes fade-out-opacity { to { opacity: 0.4; } }
+
+/* Hit Effect */
+.enemy-card.hit { animation: flash-red 0.15s ease-out; }
+@keyframes flash-red { 0%, 100% { background-color: rgba(80, 40, 40, 0.7); } 50% { background-color: rgba(200, 50, 50, 0.9); } }
+
+/* Damage Numbers */
+.damage-number { position: absolute; font-size: 1.1rem; font-weight: bold; color: #ffdddd; text-shadow: 1px 1px 1px #a00; pointer-events: none; animation: rise-and-fade 0.8s ease-out forwards; z-index: 10; white-space: nowrap; }
+@keyframes rise-and-fade { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
+
+/* Repeat Hover Target Highlight */
+.enemy-card.repeat-hover-target { outline: 2px dotted cyan; outline-offset: -2px; }
+
+/* Footer Layout */
+.combat-footer { padding: 0.75rem 1.5rem; background-color: rgba(31, 41, 55, 0.7); border-top: 1px solid #4b5563; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 1rem; position: relative; }
+.player-resource-bars { display: flex; flex-direction: column; gap: 0.4rem; width: 200px; flex-shrink: 0; }
+.resource-bar { width: 100%; height: 18px; background-color: #111827; border-radius: 9px; border: 1px solid #4b5563; position: relative; overflow: hidden; }
+.resource-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; border-radius: 9px; transition: width 0.3s ease-out; }
+.resource-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; font-weight: bold; color: white; text-shadow: 1px 1px 1px black; white-space: nowrap; line-height: 1; }
+.health-fill { background-color: #ef4444; } .mana-fill { background-color: #3b82f6; }
+.player-skill-bar-container { flex-grow: 1; display: flex; justify-content: center; gap: 0.5rem; }
+.combat-skill-slot { position: relative; overflow: hidden; cursor: not-allowed; width: 60px; height: 60px; background-color: rgba(17, 24, 39, 0.7); border: 1px solid #6b7280; border-radius: 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.combat-skill-slot.assigned { cursor: pointer; }
+.skill-cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background-color: rgba(0, 0, 0, 0.7); transition: height 0.1s linear; pointer-events: none; z-index: 1; }
+.skill-cooldown-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.1rem; font-weight: bold; text-shadow: 1px 1px 2px black; pointer-events: none; z-index: 3; display: none; }
+.combat-skill-slot .assigned-skill-name, .combat-skill-slot span { position: relative; z-index: 2; }
+.combat-log-area { background-color: rgba(17, 24, 39, 0.6); border: 1px solid #374151; border-radius: 0.25rem; padding: 0.5rem; height: 100px; overflow-y: scroll; font-size: 0.75rem; color: #9ca3af; width: 250px; flex-shrink: 0; line-height: 1.4; align-self: center; user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text;}
+.combat-log-area p { margin-bottom: 0.3rem; } .combat-log-area p:last-child { margin-bottom: 0; }
+
+/* Tooltip Styles */
+.item-tooltip { position: absolute; z-index: 100; background-color: rgba(17, 24, 39, 0.95); border: 1px solid #818cf8; border-radius: 0.375rem; padding: 0.75rem; width: auto; max-width: 300px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); color: #e5e7eb; font-size: 0.8rem; line-height: 1.4; pointer-events: none; opacity: 0; transform: scale(0.95); transition: opacity 0.1s ease-out, transform 0.1s ease-out; }
+.item-tooltip.visible { opacity: 1; transform: scale(1); }
+.item-tooltip .item-name { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 0.9rem; color: #a5b4fc; margin-bottom: 0.5rem; border-bottom: 1px solid #4b5563; padding-bottom: 0.3rem; }
+.item-tooltip .item-type { font-style: italic; color: #9ca3af; margin-bottom: 0.5rem; display: block; }
+.item-tooltip .item-stat { display: block; margin-bottom: 0.2rem; color: #d1d5db; }
+.item-tooltip .item-stat .value { color: #ffffff; font-weight: 500; }
+
+/* Add to style.css */
+
+/* Container within the left placeholder card */
+#combat-loadout-display {
+    /* Uses inline styles currently for grid layout */
+    /* Add specific styles here if needed */
+    margin-top: 0.5rem; /* Add some space from top */
 }
 
-.assign-skill-slot:hover {
-    border-color: #9ca3af;
-    background-color: rgba(55, 65, 81, 0.6);
-}
-
-/* Style for the keybind text */
-.assign-skill-slot span {
-    position: absolute;
-    bottom: 2px;
-    right: 4px;
-    font-size: 0.65rem;
-    font-weight: bold;
-    color: rgba(209, 213, 219, 0.7);
-    user-select: none;
-}
-.assign-skill-slot.mouse-skill span {
-    font-size: 0.6rem;
-}
-
-/* Style for the assigned skill name/icon placeholder */
-.assign-skill-slot .assigned-skill-name {
+/* Individual slots in the combat loadout */
+.combat-equip-slot {
+    /* Inherits from .equip-slot by default */
+    /* Overrides added via inline style in JS, or add them here: */
     font-size: 0.7rem;
-    color: #e5e7eb;
-    padding: 0 2px; /* Prevent text touching edges */
-    line-height: 1.2;
-    /* Add styles for skill icon later */
-}
- .assign-skill-slot .assigned-skill-name.empty {
-    color: #6b7280; /* Dim color if empty */
-    font-style: italic;
+    min-height: 35px;
+    padding: 0.2rem; /* Adjust padding */
+    /* Add any other combat-specific overrides */
 }
 
-
-/* Highlight for the slot selected for assignment */
-.assign-skill-slot.selected-for-assignment {
-    border-color: #facc15; /* Yellow border */
-    box-shadow: 0 0 5px rgba(250, 204, 21, 0.5);
-}
-
-/* Highlight for the skill selected from the learned list */
-#learned-skills-list .skill-item.selected-for-assignment {
-     border-color: #facc15; /* Yellow border */
-     background-color: rgba(75, 85, 99, 0.7);
-     cursor: default; /* Indicate it's selected */
-}
- #learned-skills-list .skill-item {
-     cursor: pointer; /* Make learned skills clickable */
-     transition: border-color 0.2s ease, background-color 0.2s ease;
- }
- #learned-skills-list .skill-item:hover {
-     background-color: rgba(75, 85, 99, 0.7);
- }
-
-
-/* --- END Skill Assignment Styles --- */
+/* Utility */
+.hidden { display: none !important; }
