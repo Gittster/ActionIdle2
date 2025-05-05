@@ -351,82 +351,74 @@ function handleEnemyDeath(enemyData) {
 /**
  * Renders the currentZoneLoot into the right placeholder card UI.
  */
+// Modify displayLoot
+
 function displayLoot() {
+    console.log(`--- displayLoot CALLED. Items/Credits: ${currentZoneLoot.filter(Boolean).length} ---`);
     const lootContainer = document.getElementById('right-placeholder-card');
     if (!lootContainer) return;
 
-    lootContainer.innerHTML = ''; // Clear previous
+    lootContainer.innerHTML = '';
     lootContainer.style.alignItems = 'flex-start'; lootContainer.style.justifyContent = 'flex-start'; lootContainer.style.padding = '0.5rem';
 
-    if (currentZoneLoot.length === 0 && currentZoneCredits === 0) { /* ... restore placeholder ... */ return; }
+    const actualLootEntries = currentZoneLoot.filter(Boolean); // Filter out null (picked up) entries
+
+    if (actualLootEntries.length === 0) {
+        lootContainer.innerHTML = '<p>Loot / Map Area</p>'; // Restore placeholder
+        lootContainer.style.alignItems = 'center'; lootContainer.style.justifyContent = 'center';
+        return;
+    }
 
     const lootList = document.createElement('ul');
     lootList.id = 'loot-list';
     lootList.style.cssText = 'list-style:none; padding:0; margin:0; width:100%;';
 
-    // Display Total Credits (make clickable)
-    if (currentZoneCredits > 0) {
-        const creditsItem = document.createElement('li');
-        creditsItem.className = 'loot-item credits-display';
-        // --- Apply styles via CSS preferably, but inline for clarity here ---
-        creditsItem.style.cssText = `
-            padding: 0.3rem 0.5rem; margin-bottom: 0.3rem; border-radius: 4px;
-            background-color: rgba(70, 80, 95, 0.7); font-size: 0.8rem;
-            border: 1px solid #4b5563; cursor: pointer; /* Make clickable */
-            color: #facc15; /* Gold color */
-            font-weight: bold;
-        `;
-        creditsItem.textContent = `${currentZoneCredits} Credits (Click to collect)`; // Indicate clickable
-        // --- Add click listener ---
-        creditsItem.removeEventListener('click', handleCreditsPickup); // Prevent duplicates
-        creditsItem.addEventListener('click', handleCreditsPickup);
-        // -------------------------
-        lootList.appendChild(creditsItem);
-    }
-
-    // Display Items
+    // --- Display All Loot Entries (Items and Credits) ---
     currentZoneLoot.forEach((loot, index) => {
-        if (!loot || loot.type !== 'item' || !loot.itemData) return;
+        if (!loot) return; // Skip already picked up items
 
-        const item = loot.itemData;
         const listItem = document.createElement('li');
-        listItem.className = 'loot-item';
-        // --- Apply styles via CSS preferably ---
+        listItem.className = 'loot-item'; // Use common class for styling/events
         listItem.style.cssText = `
             padding: 0.3rem 0.5rem; margin-bottom: 0.3rem; border-radius: 4px;
             cursor: pointer; background-color: rgba(50, 60, 75, 0.7);
             font-size: 0.8rem; border: 1px solid #4b5563;
-        `;
-        listItem.dataset.lootIndex = index;
+        `; // Base style, clickable
 
-        try { // Use try-catch for stringify
-            const itemDataString = JSON.stringify(item);
-            listItem.dataset.itemData = itemDataString;
-            // console.log("Stored item data on element:", itemDataString); // ADD LOG to verify
-        } catch (e) {
-            console.error("Error stringifying item data for loot list:", item, e);
-            listItem.dataset.itemData = '{}'; // Store empty object on error
+        listItem.dataset.lootIndex = index; // Store index for identification
+
+        if (loot.type === 'credits') {
+            listItem.textContent = `${loot.amount} Credits`;
+            listItem.style.color = '#facc15'; // Gold color
+            listItem.style.fontWeight = 'bold';
+            // Add listener specific to credits
+            listItem.removeEventListener('click', handleCreditLootClick); // Prevent duplicates
+            listItem.addEventListener('click', handleCreditLootClick);
+            // No tooltip listeners for credits
         }
-
-
-        listItem.textContent = item.name || 'Unknown Item';
-        switch (item.rarity?.toLowerCase()) { /* ... rarity colors ... */
-             case 'uncommon': listItem.style.color = '#63a4ff'; listItem.style.borderColor = '#63a4ff'; break;
-             case 'rare': listItem.style.color = '#bf85ff'; listItem.style.borderColor = '#bf85ff'; break;
-             case 'epic': listItem.style.color = '#ffa500'; listItem.style.borderColor = '#ffa500'; break;
-             case 'legendary': listItem.style.color = '#ff4500'; listItem.style.borderColor = '#ff4500'; break;
-             default: listItem.style.color = '#e5e7eb'; break;
+        else if (loot.type === 'item' && loot.itemData) {
+            const item = loot.itemData;
+            listItem.dataset.itemData = JSON.stringify(item); // Store data for tooltip
+            listItem.textContent = item.name || 'Unknown Item';
+            // Style based on rarity
+            switch (item.rarity?.toLowerCase()) { /* ... rarity colors ... */
+                case 'uncommon': listItem.style.color = '#63a4ff'; listItem.style.borderColor = '#63a4ff'; break;
+                case 'rare': listItem.style.color = '#bf85ff'; listItem.style.borderColor = '#bf85ff'; break;
+                case 'epic': listItem.style.color = '#ffa500'; listItem.style.borderColor = '#ffa500'; break;
+                case 'legendary': listItem.style.color = '#ff4500'; listItem.style.borderColor = '#ff4500'; break;
+                default: listItem.style.color = '#e5e7eb'; break;
+            }
+            // Add listener specific to items (pickup)
+            listItem.removeEventListener('click', handleLootItemClick);
+            listItem.addEventListener('click', handleLootItemClick);
+            // Add tooltip listeners
+            listItem.removeEventListener('mouseover', handleLootItemMouseOver);
+            listItem.addEventListener('mouseover', handleLootItemMouseOver);
+            listItem.removeEventListener('mouseout', handleLootItemMouseOut);
+            listItem.addEventListener('mouseout', handleLootItemMouseOut);
+            listItem.removeEventListener('mousemove', handleLootItemMouseMove);
+            listItem.addEventListener('mousemove', handleLootItemMouseMove);
         }
-
-        // Attach Listeners (Corrected - Ensure handlers exist)
-        listItem.removeEventListener('click', handleLootItemClick); // Pickup Item
-        listItem.addEventListener('click', handleLootItemClick);
-        listItem.removeEventListener('mouseover', handleLootItemMouseOver); // Tooltip Hover In
-        listItem.addEventListener('mouseover', handleLootItemMouseOver);
-        listItem.removeEventListener('mouseout', handleLootItemMouseOut); // Tooltip Hover Out
-        listItem.addEventListener('mouseout', handleLootItemMouseOut);
-        listItem.removeEventListener('mousemove', handleLootItemMouseMove); // Tooltip Move
-        listItem.addEventListener('mousemove', handleLootItemMouseMove);
 
         lootList.appendChild(listItem);
     });
@@ -434,6 +426,64 @@ function displayLoot() {
     lootContainer.appendChild(lootList);
 }
 
+// NEW FUNCTION BLOCK
+
+/**
+ * Handles clicking on a Credits loot item in the list.
+ * @param {Event} event
+ */
+async function handleCreditLootClick(event) {
+    const listItem = event.currentTarget;
+    const index = parseInt(listItem.dataset.lootIndex, 10);
+
+    if (isNaN(index) || !currentZoneLoot[index] || currentZoneLoot[index].type !== 'credits') {
+        console.warn("Invalid credit loot item clicked or already picked up:", index);
+        return;
+    }
+    if (!currentCharacterData || !auth.currentUser) {
+        addCombatLogMessage("Cannot pickup credits: Character data missing.");
+        return;
+    }
+
+
+    const lootEntry = currentZoneLoot[index];
+    const creditsCollected = lootEntry.amount;
+
+    console.log(`Picking up ${creditsCollected} credits.`);
+
+    // --- Update Player Currency ---
+    const currentCurrency = currentCharacterData.currency || 0;
+    const newCurrency = currentCurrency + creditsCollected;
+    currentCharacterData.currency = newCurrency; // Update local data
+
+    // --- Mark loot as picked up ---
+    currentZoneLoot[index] = null; // Remove from loot pool
+
+    // --- Update UI ---
+    displayLoot(); // Re-render loot list (removes the credit line)
+    if (townCurrency) townCurrency.textContent = newCurrency; // Update town display if visible
+    // updateResourceDisplay(); // Not needed unless currency affects bars
+    addCombatLogMessage(`Collected ${creditsCollected} Credits.`);
+    // -------------------
+
+    // --- Save Updated Currency to Firestore ---
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            currency: newCurrency // Save the new total
+        });
+        console.log("Player currency updated in Firestore.");
+    } catch (error) {
+        console.error("Failed to save currency update:", error);
+        addCombatLogMessage("Error saving currency!");
+        // Rollback? Put credits back?
+        currentZoneLoot[index] = lootEntry; // Put back if save failed
+        currentCharacterData.currency = currentCurrency; // Revert local data
+        displayLoot(); // Re-display credits if rolled back
+    }
+    // ---------------------------------------
+}
+// END OF NEW FUNCTION BLOCK
 /**
  * Handles clicking on a loot item in the list.
  * @param {Event} event
@@ -728,97 +778,12 @@ async function saveSkillAssignments() { if (!currentCharacterData || !auth.curre
 
 // --- Tooltip Functions ---
 function formatItemTooltip(itemData) { if (!itemData) return ''; function fmt(key){ const map={'physicalDamageMin':'Min Phys Dmg','physicalDamageMax':'Max Phys Dmg','attackSpeed':'Attack Speed','critChance':'Crit Chance'}; return map[key] || key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()); } let html=`<div class="item-name">${itemData.name||'Unknown'}</div>`; if(itemData.type){html+=`<span class="item-type">${itemData.type}</span>`;} if(itemData.baseStats){Object.entries(itemData.baseStats).forEach(([k,v])=>{const n=fmt(k);const fv=(k==='critChance')?`${v.toFixed(1)}%`:v;html+=`<span class="item-stat">${n}: <span class="value">${fv}</span></span>`;});} return html; }
-function showTooltip(event, element) {
-    if (!itemTooltip || !currentCharacterData) return;
-
-    let itemData = null;
-    let source = 'unknown'; // For debugging
-
-    if (element.classList.contains('equip-slot')) {
-        source = 'equipment';
-        const slotName = element.dataset.slot;
-        itemData = currentCharacterData.equipped?.[slotName];
-    }
-    else if (element.classList.contains('loot-item') && element.dataset.itemData) {
-        source = 'loot';
-        const itemDataString = element.dataset.itemData;
-        // console.log(`Tooltip attempting to parse loot data (source: ${source}):`, itemDataString); // ADD LOG
-        try {
-            itemData = JSON.parse(itemDataString);
-        } catch (e) {
-            console.error("Error parsing loot item data for tooltip:", e, "Data was:", itemDataString);
-            itemData = { name: "Error: Invalid Data" };
-        }
-    }
-
-    // console.log(`Show tooltip: Source=${source}, Data=`, itemData); // ADD LOG
-
-    if (itemData && itemData.name !== "Error: Invalid Data") { // Check if parsing succeeded
-        itemTooltip.innerHTML = formatItemTooltip(itemData);
-        positionTooltip(event);
-        itemTooltip.classList.add('visible');
-        itemTooltip.classList.remove('hidden');
-    } else {
-        hideTooltip();
-    }
-}
+function showTooltip(event, element) { if (!itemTooltip || !currentCharacterData) return; let itemData = null; if (element.classList.contains('equip-slot')) { const slotName = element.dataset.slot; itemData = currentCharacterData.equipped?.[slotName]; } if (itemData) { itemTooltip.innerHTML = formatItemTooltip(itemData); positionTooltip(event); itemTooltip.classList.add('visible'); itemTooltip.classList.remove('hidden'); } else { hideTooltip(); } }
 function hideTooltip() { if (!itemTooltip) return; itemTooltip.classList.remove('visible'); itemTooltip.classList.add('hidden'); }
 function positionTooltip(event) { if (!itemTooltip) return; const r=itemTooltip.getBoundingClientRect(); const ox=15, oy=15; let l=event.clientX+ox; let t=event.clientY+oy; if(l+r.width>window.innerWidth){l=event.clientX-r.width-ox;} if(t+r.height>window.innerHeight){t=event.clientY-r.height-oy;} if(l<0)l=ox; if(t<0)t=oy; itemTooltip.style.left=`${l}px`; itemTooltip.style.top=`${t}px`; }
 function handleSlotMouseOver(event) { showTooltip(event, this); }
 function handleSlotMouseOut(event) { hideTooltip(); }
 function handleSlotMouseMove(event) { if (itemTooltip?.classList.contains('visible')) { positionTooltip(event); } }
-
-async function handleCreditsPickup() {
-    if (!isCombatActive && currentEnemies.length > 0) {
-         // Don't allow pickup if combat is somehow inactive but enemies remain
-         // This might happen if the loop stopped but the boss wasn't technically defeated yet
-         addCombatLogMessage("Defeat remaining enemies first.");
-         return;
-    }
-    if (currentZoneCredits <= 0) {
-        console.log("No credits to pick up.");
-        return;
-    }
-    if (!currentCharacterData || !auth.currentUser) {
-        addCombatLogMessage("Cannot pickup credits: Character data missing.");
-        return;
-    }
-
-    const creditsCollected = currentZoneCredits;
-    console.log(`Picking up ${creditsCollected} credits.`);
-
-    // --- Update Player Currency ---
-    const currentCurrency = currentCharacterData.currency || 0;
-    const newCurrency = currentCurrency + creditsCollected;
-    currentCharacterData.currency = newCurrency; // Update local data
-
-    // Reset zone credits *before* saving and UI update
-    currentZoneCredits = 0;
-
-    // --- Update UI ---
-    displayLoot(); // Re-render loot list (will remove credits line)
-    if (townCurrency) townCurrency.textContent = newCurrency; // Update town display if visible
-    updateResourceDisplay(); // May update other UI elements if needed
-    addCombatLogMessage(`Collected ${creditsCollected} Credits.`);
-    // -------------------
-
-    // --- Save Updated Currency to Firestore ---
-    try {
-        const charRef = doc(db, "characters", currentCharacterData.id);
-        await updateDoc(charRef, {
-            currency: newCurrency // Save the new total
-        });
-        console.log("Player currency updated in Firestore.");
-    } catch (error) {
-        console.error("Failed to save currency update:", error);
-        addCombatLogMessage("Error saving currency!");
-        // Rollback? Add credits back to currentZoneCredits?
-        // For now, log error. Currency remains updated locally.
-        // currentZoneCredits = creditsCollected; // Example rollback state
-        // displayLoot(); // Re-display credits if rolled back
-    }
-    // ---------------------------------------
-}
 
 // --- Player Appearance (for default skills) ---
 function setPlayerAppearance() { if (!currentCharacterData) { skillBar.slots.forEach(slot => { slot.skillId = null; slot.cooldownUntil = 0; slot.cooldownStart = 0; }); return; } const charClass = currentCharacterData.class; skillBar.slots.forEach(slot => { slot.skillId = null; slot.cooldownUntil = 0; slot.cooldownStart = 0; }); switch (charClass) { case 'Juggernaut': skillBar.slots[4].skillId = 'basic_strike'; break; /* Add other classes */ default: skillBar.slots[4].skillId = 'basic_strike'; break; } console.log("Default skills set:", skillBar.slots.map(s => s.skillId)); }
@@ -964,24 +929,42 @@ function displayCombatLoadout() {
 // END OF NEW FUNCTION BLOCK
 
 function leaveCombatZone() {
-    console.log("Leaving combat zone."); isCombatActive = false;
-    if (combatLoopRequestId) { cancelAnimationFrame(combatLoopRequestId); combatLoopRequestId = null; }
-    document.removeEventListener('keydown', handleCombatKeyPress); document.removeEventListener('keyup', handleCombatKeyRelease);
-    document.removeEventListener('mousedown', handleCombatMouseClick); document.removeEventListener('mouseup', handleCombatMouseRelease);
-    document.removeEventListener('contextmenu', preventContextMenu); document.removeEventListener('mousemove', handleCombatMouseMoveRepeat);
+    currentZoneLoot = [];
+    displayLoot(); // Clears the UI
+    console.log("Leaving combat zone.");
+    isCombatActive = false;
+    if (combatLoopRequestId) {
+        cancelAnimationFrame(combatLoopRequestId);
+        combatLoopRequestId = null;
+        console.log("Combat loop stopped.");
+    }
 
-    // --- REMOVE Automatic Credit Collection Block ---
-    // if (currentZoneCredits > 0 && currentCharacterData) { ... } // Block removed
-    // -------------------------------------------
+    // Remove combat-specific input listeners
+    document.removeEventListener('keydown', handleCombatKeyPress);
+    document.removeEventListener('keyup', handleCombatKeyRelease);
+    document.removeEventListener('mousedown', handleCombatMouseClick);
+    document.removeEventListener('mouseup', handleCombatMouseRelease);
+    document.removeEventListener('contextmenu', preventContextMenu);
+    document.removeEventListener('mousemove', handleCombatMouseMoveRepeat); // Ensure mousemove is removed
 
-    activeRepeatSkillId = null; activeRepeatTargetId = null; keysDown = {}; currentEnemies = []; gridState = [];
-    currentZoneLoot = []; // Clear item loot
-    currentZoneCredits = 0; // Reset credits state variable too
-    if (enemyGrid) enemyGrid.innerHTML = ''; lastAttackedTargetId = null; document.querySelectorAll('.enemy-card.repeat-hover-target').forEach(el => el.classList.remove('repeat-hover-target'));
-    displayLoot(); // Clears the UI including any leftover credits display if not picked up
+    // Reset repeat state
+    activeRepeatSkillId = null;
+    activeRepeatTargetId = null;
+    keysDown = {};
+    // Clear hover target feedback
+    document.querySelectorAll('.enemy-card.repeat-hover-target').forEach(el => el.classList.remove('repeat-hover-target'));
 
-    showScreen('town'); activateTownPanel('map-panel');
-    if (combatLog) { combatLog.scrollTop = combatLog.scrollHeight; }
+
+    // ... (rest of leaveCombatZone: clear enemies, grid, target, show town etc.) ...
+     currentEnemies = [];
+     gridState = [];
+     if (enemyGrid) enemyGrid.innerHTML = '';
+     lastAttackedTargetId = null; // Keep resetting this too
+
+     showScreen('town');
+     activateTownPanel('map-panel');
+
+     if (combatLog) { combatLog.scrollTop = combatLog.scrollHeight; }
 }
 function loadNextEncounter() {
     console.log(`--- loadNextEncounter CALLED ---`); console.log(`State: currentPack=${currentPackIndex}, totalPacks=${totalPacksInZone}, isBoss=${isBossEncounter}, activeZoneId=${activeZoneId}`); console.log("Checking isCombatActive:", isCombatActive);
