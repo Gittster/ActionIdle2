@@ -158,26 +158,219 @@ const ATTACK_DEFINITIONS = {
 };
 
 const ENEMY_DEFINITIONS = {
-    'alpha_drone_commander': { id: 'alpha_drone_commander', name: 'Drone Commander', hp: 250, attack: 15, defense: 10, image: null },
-    'mutant_overseer': { id: 'mutant_overseer', name: 'Mutant Overseer', hp: 600, attack: 25, defense: 15, image: null },
-    'mutant_brute': { id: 'mutant_brute', name: 'Mutant Brute', hp: 400, attack: 20, defense: 8, image: null },
-    'drone_basic': { id: 'drone_basic', name: 'Scout Drone', hp: 50, attack: 5, defense: 2, image: null },
-    'mutant_scav': { id: 'mutant_scav', name: 'Mutant Scavenger', hp: 80, attack: 8, defense: 5, image: null },
-    'mech_sentry': { id: 'mech_sentry', name: 'Sentry Bot', hp: 120, attack: 12, defense: 10, image: null }
+    'alpha_drone_commander': { id: 'alpha_drone_commander', name: 'Drone Commander', hp: 250, attack: 15, defense: 10, image: null, xpValue: 120 }, // Boss
+    'mutant_overseer': { id: 'mutant_overseer', name: 'Mutant Overseer', hp: 600, attack: 25, defense: 15, image: null, xpValue: 250 }, // Higher level boss
+    'mutant_brute': { id: 'mutant_brute', name: 'Mutant Brute', hp: 400, attack: 20, defense: 8, image: null, xpValue: 80 },
+    'drone_basic': { id: 'drone_basic', name: 'Scout Drone', hp: 50, attack: 5, defense: 2, image: null, xpValue: 10 },
+    'mutant_scav': { id: 'mutant_scav', name: 'Mutant Scavenger', hp: 80, attack: 8, defense: 5, image: null, xpValue: 15 },
+    'mech_sentry': { id: 'mech_sentry', name: 'Sentry Bot', hp: 120, attack: 12, defense: 10, image: null, xpValue: 25 }
 };
 
+// --- Zone Configurations ---
 const ZONE_CONFIG = {
     'landing_zone_alpha': {
-        name: 'Landing Zone Alpha', gridCols: 3, gridRows: 2, packs: 1, bossId: 'alpha_drone_commander',
-        unlocksZoneId: 'derelict_station', possibleEnemies: ['drone_basic'], enemyCountMinPerPack: 1, enemyCountMaxPerPack: 2
+        name: 'Landing Zone Alpha',
+        gridCols: 1,                      // CHANGED: Only one column
+        gridRows: 1,                      // CHANGED: Only one row
+        packs: 5,                         // CHANGED: 5 packs of enemies
+        bossId: 'alpha_drone_commander',
+        unlocksZoneId: 'derelict_station',
+        possibleEnemies: ['drone_basic'], // Only Scout Drones in regular packs
+        enemyCountMinPerPack: 1,          // Each pack will have exactly one enemy
+        enemyCountMaxPerPack: 1           // CHANGED: Max 1 enemy
     },
-    'derelict_station': {
-        name: 'Derelict Station', gridCols: 4, gridRows: 3, packs: 3, bossId: 'mutant_overseer',
-        unlocksZoneId: 'asteroid_mine', possibleEnemies: ['mech_sentry', 'mutant_scav', 'drone_basic'], enemyCountMinPerPack: 3, enemyCountMaxPerPack: 5
+    'derelict_station': { // This zone will serve as a step up in difficulty
+        name: 'Derelict Station',
+        gridCols: 4, // Larger grid
+        gridRows: 3,
+        packs: 3,    // Fewer packs, but more enemies per pack
+        bossId: 'mutant_overseer',
+        unlocksZoneId: 'asteroid_mine', // Example for future progression
+        possibleEnemies: ['mech_sentry', 'mutant_scav', 'drone_basic'], // Mixed enemies
+        enemyCountMinPerPack: 2, // CHANGED: At least 2 enemies
+        enemyCountMaxPerPack: 4  // CHANGED: Up to 4 enemies
     },
-    'default': {
-        name: 'Unknown Zone', gridCols: 3, gridRows: 3, packs: 2, bossId: 'mutant_brute',
-        unlocksZoneId: null, possibleEnemies: Object.keys(ENEMY_DEFINITIONS), enemyCountMinPerPack: 2, enemyCountMaxPerPack: 4
+    'asteroid_mine': { // Placeholder for future, if unlocked by derelict_station
+        name: 'Asteroid Mine Zeta',
+        gridCols: 5,
+        gridRows: 4,
+        packs: 4,
+        bossId: 'mutant_brute', // Example boss
+        unlocksZoneId: null, // End of current content example
+        possibleEnemies: ['mech_sentry', 'mutant_brute', 'mutant_scav'],
+        enemyCountMinPerPack: 3,
+        enemyCountMaxPerPack: 5
+    },
+    'default': { // Fallback zone definition
+        name: 'Unknown Zone',
+        gridCols: 3,
+        gridRows: 3,
+        packs: 2,
+        bossId: 'mutant_brute', // Default boss if none specified
+        unlocksZoneId: null,
+        possibleEnemies: Object.keys(ENEMY_DEFINITIONS), // All enemies possible
+        enemyCountMinPerPack: 2,
+        enemyCountMaxPerPack: 4
+    }
+};
+
+// --- Ship Upgrade Definitions ---
+const SHIP_UPGRADE_DEFINITIONS = {
+    'auto_loot_credits_1': {
+        id: 'auto_loot_credits_1',
+        name: "Credit Auto-Collector Mk1",
+        description: "Automatically collects credits dropped by defeated enemies.",
+        type: 'automation',
+        costCredits: 500,
+        costItems: [], // No item cost for this one
+        prerequisites: [], // No prerequisites for this first one
+        unlocksFeature: 'autoLootCredits',
+        icon: null // Placeholder for a future icon path
+    },
+    'hyperdrive_stabilizer_alpha': { // The "Act 1" progression item
+        id: 'hyperdrive_stabilizer_alpha',
+        name: "Alpha-Band Hyperdrive Stabilizer",
+        description: "Stabilizes hyperdrive fields for travel to more distant sectors. Required to leave the current star cluster.",
+        type: 'progression',
+        costCredits: 2500,
+        costItems: [
+            { itemId: 'advanced_power_core', quantity: 1 },
+            { itemId: 'commander_targeting_module', quantity: 2 },
+            { itemId: 'scrap_metal', quantity: 100 },
+            { itemId: 'basic_wiring', quantity: 50 }
+        ],
+        prerequisites: ['auto_loot_credits_1'], // Example: requires auto-loot first
+        unlocksFeature: 'canTravelToNextSector',
+        isProgressionItem: true,
+        icon: null
+    }
+    // Add more upgrades later:
+    // 'combat_ai_core_1': { name: "Basic Targeting Assist", ... costItems: [{ itemId: 'scrap_metal', quantity: 20}], ... }
+};
+
+// --- Default Ship Name ---
+const DEFAULT_SHIP_NAME = "The Vagrant"; // Player can name it later maybe
+
+// --- Experience and Leveling ---
+// XP needed to go from current level to the NEXT level.
+// Index is the current level (e.g., XP_FOR_LEVEL[1] is XP needed to advance from level 1 to level 2)
+const XP_FOR_LEVEL = [
+    0,  // Placeholder for level 0, effectively unreachable. Level 1 is start.
+  100,  // Lvl 1 -> 2
+  150,  // Lvl 2 -> 3
+  220,  // Lvl 3 -> 4
+  330,  // Lvl 4 -> 5
+  500,  // Lvl 5 -> 6
+  750,  // Lvl 6 -> 7
+  1100, // Lvl 7 -> 8
+  1600, // Lvl 8 -> 9
+  2300, // Lvl 9 -> 10 (Total for 1-10: 7050)
+  3200, // Lvl 10 -> 11
+  4500, // Lvl 11 -> 12
+  6000, // Lvl 12 -> 13
+  8000, // Lvl 13 -> 14
+  10000,// Lvl 14 -> 15 (Total for 1-15: 38750)
+  15000,// Lvl 15 -> 16 (Steeper jump - "Act 1 soft cap" starts here)
+  22000,// Lvl 16 -> 17
+  30000,// Lvl 17 -> 18
+  40000,// Lvl 18 -> 19
+  50000,// Lvl 19 -> 20
+  // Add more levels as needed, e.g., up to 50 or 100
+  // For Act 2, enemies would start giving significantly more XP.
+];
+const MAX_LEVEL = XP_FOR_LEVEL.length - 1; // Or a defined constant if XP_FOR_LEVEL array is shorter
+
+// --- Mission Definitions ---
+const MISSION_DEFINITIONS = {
+    // --- MAIN MISSIONS (Act 1 Example) ---
+    'main_act1_01_clear_landing_zone': {
+        id: 'main_act1_01_clear_landing_zone',
+        title: "Secure Landing Zone Alpha",
+        type: 'MAIN',
+        act: 1,
+        description: "Hostile drone activity has been detected in Landing Zone Alpha. Clear out the scout drones and eliminate their commander to secure the area for operations.",
+        objectives: [
+            { id: 'obj1', text: "Eliminate Scout Drones in Landing Zone Alpha", type: 'KILL_ENEMY', targetId: 'drone_basic', requiredCount: 5 },
+            { id: 'obj2', text: "Defeat the Drone Commander", type: 'KILL_ENEMY', targetId: 'alpha_drone_commander', requiredCount: 1 }
+        ],
+        prerequisites: [], // No prereqs for the first main mission
+        rewards: {
+            xp: 250,
+            credits: 300,
+            items: [{ itemId: 'reinforced_chestplate', quantity: 1 }], // Example item reward
+            unlocksMission: 'main_act1_02_investigate_derelict' // Unlocks the next main mission
+        },
+        // giverNPC: 'npc_commander_eva', // Future: NPC who gives the mission
+        // turnInNPC: 'npc_commander_eva' // Future: NPC to turn in to
+    },
+    'main_act1_02_investigate_derelict': {
+        id: 'main_act1_02_investigate_derelict',
+        title: "The Derelict Signal",
+        type: 'MAIN',
+        act: 1,
+        description: "A faint distress signal has been traced to a derelict station in a nearby asteroid field. Investigate the source. You'll need to clear the 'Derelict Station' zone.",
+        objectives: [
+            { id: 'obj1', text: "Complete the 'Derelict Station' zone", type: 'COMPLETE_ZONE', targetId: 'derelict_station', requiredCount: 1 }
+        ],
+        prerequisites: ['main_act1_01_clear_landing_zone'],
+        rewards: {
+            xp: 500,
+            credits: 750,
+            unlocksMission: 'main_act1_03_build_hyperdrive_stabilizer' // Leads to ship upgrade mission
+        }
+    },
+    'main_act1_03_build_hyperdrive_stabilizer': { // Final Act 1 Main Mission
+        id: 'main_act1_03_build_hyperdrive_stabilizer',
+        title: "Path to the Stars",
+        type: 'MAIN',
+        act: 1,
+        description: "To venture beyond this cluster, your ship's hyperdrive needs a critical stabilizer. Gather the necessary components and craft it at your ship's fabricator.",
+        objectives: [
+            { id: 'obj1', text: "Craft the Alpha-Band Hyperdrive Stabilizer", type: 'CRAFT_SHIP_UPGRADE', targetId: 'hyperdrive_stabilizer_alpha', requiredCount: 1 }
+        ],
+        prerequisites: ['main_act1_02_investigate_derelict'],
+        rewards: {
+            xp: 1000,
+            credits: 1500,
+            // The "reward" is also enabling travel to Act 2, handled by the upgrade's 'unlocksFeature'
+            // No items here, the crafted item is the goal
+        }
+    },
+
+    // --- SIDE MISSIONS (Act 1 Example) ---
+    'side_act1_drone_cull_1': {
+        id: 'side_act1_drone_cull_1',
+        title: "Drone Cull: Landing Zone",
+        type: 'SIDE',
+        act: 1,
+        description: "The initial drone presence in Landing Zone Alpha was higher than anticipated. Thin out their numbers further.",
+        objectives: [
+            { id: 'obj1', text: "Eliminate Scout Drones in Landing Zone Alpha", type: 'KILL_ENEMY', targetId: 'drone_basic', requiredCount: 15 }
+        ],
+        prerequisites: ['main_act1_01_clear_landing_zone'], // Becomes available after first main mission
+        rewards: {
+            xp: 100,
+            credits: 150,
+            items: [{ itemId: 'scrap_metal', quantity: 20 }]
+        },
+        isRepeatable: false // Or true, with cooldown logic later
+    },
+    'side_act1_scavenger_hunt': {
+        id: 'side_act1_scavenger_hunt',
+        title: "Scavenger's Bounty",
+        type: 'SIDE',
+        act: 1,
+        description: "Mutant Scavengers in the Derelict Station are hoarding valuable components. Retrieve some for analysis.",
+        objectives: [
+            { id: 'obj1', text: "Defeat Mutant Scavengers", type: 'KILL_ENEMY', targetId: 'mutant_scav', requiredCount: 8 }
+            // Could add a 'COLLECT_ITEM' objective here too, e.g., an item they drop
+        ],
+        prerequisites: ['main_act1_02_investigate_derelict'],
+        rewards: {
+            xp: 180,
+            credits: 250,
+            items: [{ itemId: 'basic_wiring', quantity: 15}]
+        }
     }
 };
 
@@ -486,80 +679,427 @@ function chooseWeightedRandom(chances) {
 // NEW FUNCTION BLOCK
 
 /**
- * Calculates loot drops for a defeated enemy and adds them to the currentZoneLoot.
- * @param {object} enemyData - The data object of the defeated enemy.
+ * Calculates loot drops and XP for a defeated enemy.
+ * Tracks KILL_ENEMY mission objectives.
+ * @param {object} enemyData - The data object of the defeated enemy (should include typeId, xpValue).
  */
-function handleEnemyDeath(enemyData) {
-    console.log(`Handling death for ${enemyData.name} (Type: ${enemyData.typeId})`);
+async function handleEnemyDeath(enemyData) {
+    console.log(`--- handleEnemyDeath START for ${enemyData.name} (Type: ${enemyData.typeId}) ---`);
+    const enemyDefinition = ENEMY_DEFINITIONS[enemyData.typeId]; // Get the full definition for XP and ID checks
+
+    if (!enemyDefinition) {
+        console.warn(`No enemy definition found for typeId: ${enemyData.typeId}. Cannot process death fully.`);
+        return;
+    }
+
+    let progressChangedForSave = false; // Flag to determine if Firestore save is needed
+
+    // --- Grant XP ---
+    if (enemyDefinition.xpValue > 0 && currentCharacterData.level < MAX_LEVEL) {
+        currentCharacterData.experience += enemyDefinition.xpValue;
+        addCombatLogMessage(`Gained ${enemyDefinition.xpValue} XP.`);
+        console.log(`Gained ${enemyDefinition.xpValue} XP. Current XP: ${currentCharacterData.experience}/${currentCharacterData.xpToNextLevel}`);
+        if (checkForLevelUp()) { // checkForLevelUp returns true if level up occurred
+            // Level up messages and main UI updates (level, XP bar) are handled inside checkForLevelUp
+        }
+        updateXpBarDisplay(); // Ensure XP bar is always updated after XP gain
+        progressChangedForSave = true;
+    }
+    // ----------------
+
+    // --- Track Mission Objectives: KILL_ENEMY ---
+    if (currentCharacterData && currentCharacterData.activeMissions) {
+        for (const missionId in currentCharacterData.activeMissions) {
+            const activeMission = currentCharacterData.activeMissions[missionId];
+            if (activeMission.status !== 'ACTIVE') continue;
+
+            const missionDef = MISSION_DEFINITIONS[missionId];
+            if (!missionDef) continue;
+
+            let missionProgressMade = false;
+            for (const objDef of missionDef.objectives) {
+                if (objDef.type === 'KILL_ENEMY' && objDef.targetId === enemyData.typeId) {
+                    const objectiveProgress = activeMission.objectivesProgress[objDef.id];
+                    if (objectiveProgress && !objectiveProgress.isComplete) {
+                        objectiveProgress.currentCount = (objectiveProgress.currentCount || 0) + 1;
+                        console.log(`Mission '${missionDef.title}' progress: ${objDef.text} (${objectiveProgress.currentCount}/${objDef.requiredCount})`);
+                        addCombatLogMessage(`Progress: ${missionDef.title} - ${objDef.text.substring(0,20)}...`);
+
+
+                        if (objectiveProgress.currentCount >= objDef.requiredCount) {
+                            objectiveProgress.isComplete = true;
+                            console.log(`Objective '${objDef.text}' for mission '${missionDef.title}' COMPLETED.`);
+                        }
+                        missionProgressMade = true;
+                    }
+                }
+            }
+            if (missionProgressMade) {
+                // Check if the entire mission is now complete
+                await checkMissionCompletion(missionId); // Make this async if completeMission is async
+                progressChangedForSave = true; // Mark that mission data might have changed
+            }
+        }
+    }
+    // -----------------------------------------
+
+    // --- Loot Processing ---
     const lootTable = LOOT_TABLES[enemyData.typeId];
-    if (!lootTable) {
-        console.log(" -> No loot table found for this enemy type.");
-        return; // No table defined for this enemy
+    const droppedLootForZoneDisplay = [];
+    let autoCollectedCreditsAmount = 0;
+    const hasAutoLootCredits = currentCharacterData?.unlockedUpgrades?.includes('auto_loot_credits_1');
+
+    if (lootTable) {
+        // Credits
+        if (Math.random() < (lootTable.creditsChance ?? 0)) {
+            const amount = Math.floor(Math.random() * ((lootTable.creditsMax || 0) - (lootTable.creditsMin || 0) + 1)) + (lootTable.creditsMin || 0);
+            if (amount > 0) {
+                if (hasAutoLootCredits) {
+                    currentCharacterData.currency = (currentCharacterData.currency || 0) + amount;
+                    autoCollectedCreditsAmount += amount;
+                    addCombatLogMessage(`Auto-collected ${amount} Credits.`);
+                    progressChangedForSave = true;
+                } else {
+                    droppedLootForZoneDisplay.push({ type: 'credits', amount: amount });
+                }
+            }
+        }
+        // Items
+        if (Math.random() < (lootTable.itemDropChance ?? 0)) {
+            const numberOfItems = Math.floor(Math.random() * (lootTable.maxItemDrops || 1)) + 1;
+            for (let i = 0; i < numberOfItems; i++) {
+                const rarity = chooseWeightedRandom(lootTable.rarityChances);
+                if (!rarity) continue;
+                const pool = lootTable.itemPools?.[rarity];
+                if (!pool || pool.length === 0) continue;
+                const itemId = pool[Math.floor(Math.random() * pool.length)];
+                const itemBaseData = ITEM_DEFINITIONS[itemId];
+                if (!itemBaseData) continue;
+                droppedLootForZoneDisplay.push({ type: 'item', itemData: { ...itemBaseData, rarity: itemBaseData.rarity || rarity } });
+            }
+        }
+    } else {
+        console.warn(`No loot table found for enemy type: ${enemyData.typeId}`);
     }
 
-    const droppedLoot = [];
+    if (droppedLootForZoneDisplay.length > 0) {
+        currentZoneLoot.push(...droppedLootForZoneDisplay);
+    }
+    displayLoot(); // Update loot UI regardless of whether new loot was added (to clear old if empty)
 
-    // --- Roll for Credits ---
-    if (Math.random() < (lootTable.creditsChance ?? 0)) {
-        const amount = Math.floor(Math.random() * (lootTable.creditsMax - lootTable.creditsMin + 1)) + lootTable.creditsMin;
-        if (amount > 0) {
-            droppedLoot.push({ type: 'credits', amount: amount });
-            console.log(` -> Dropped ${amount} Credits.`);
+    // --- Save Character Progress (XP, Level, Currency, Missions) ---
+    if (progressChangedForSave) {
+        try {
+            const charRef = doc(db, "characters", currentCharacterData.id);
+            await updateDoc(charRef, {
+                level: currentCharacterData.level,
+                experience: currentCharacterData.experience,
+                xpToNextLevel: currentCharacterData.xpToNextLevel,
+                currency: currentCharacterData.currency,
+                activeMissions: currentCharacterData.activeMissions, // Save mission progress
+                completedMissions: currentCharacterData.completedMissions
+            });
+            console.log("Character progress (XP, Level, Currency, Missions) saved to Firestore.");
+        } catch (error) {
+            console.error("Failed to save character progress after enemy death:", error);
+        }
+    }
+    console.log(`--- handleEnemyDeath END for ${enemyData.name} ---`);
+}
+
+/**
+ * Checks if all objectives for a given mission are complete.
+ * If so, updates the mission status to 'OBJECTIVES_MET' and triggers a UI refresh.
+ * @param {string} missionId The ID of the mission to check.
+ */
+async function checkMissionCompletion(missionId) {
+    if (!currentCharacterData || !currentCharacterData.activeMissions || !currentCharacterData.activeMissions[missionId]) {
+        console.warn(`checkMissionCompletion: Mission ${missionId} not active or character data missing.`);
+        return false; // Return a boolean indicating if status changed
+    }
+
+    const activeMission = currentCharacterData.activeMissions[missionId];
+    // Only proceed if the mission is currently 'ACTIVE' and not already 'OBJECTIVES_MET'
+    if (activeMission.status !== 'ACTIVE') {
+        // console.log(`checkMissionCompletion: Mission ${missionId} is not in 'ACTIVE' state (current: ${activeMission.status}). No check needed.`);
+        return false;
+    }
+
+    const missionDef = MISSION_DEFINITIONS[missionId];
+    if (!missionDef) {
+        console.error(`checkMissionCompletion: Definition not found for mission ${missionId}.`);
+        return false;
+    }
+
+    let allObjectivesComplete = true;
+    for (const objDef of missionDef.objectives) {
+        const progress = activeMission.objectivesProgress[objDef.id];
+        if (!progress || !progress.isComplete) {
+            allObjectivesComplete = false;
+            break;
         }
     }
 
-    // --- Roll for Item Drops ---
-    if (Math.random() < (lootTable.itemDropChance ?? 0)) {
-        const numberOfItems = Math.floor(Math.random() * (lootTable.maxItemDrops || 1)) + 1; // Drop at least 1 if chance hits
-        console.log(` -> Attempting to drop ${numberOfItems} item(s)...`);
+    if (allObjectivesComplete) {
+        console.log(`All objectives for mission '${missionDef.title}' are now complete! Setting status to OBJECTIVES_MET.`);
+        activeMission.status = 'OBJECTIVES_MET'; // Update status
+        addCombatLogMessage(`Objectives complete: ${missionDef.title}. Ready to claim rewards.`, 'quest');
 
-        for (let i = 0; i < numberOfItems; i++) {
-            // 1. Determine Rarity
-            const rarity = chooseWeightedRandom(lootTable.rarityChances);
-            if (!rarity) {
-                console.log(`    -> Rarity roll failed.`);
-                continue; // Skip if no rarity is chosen (e.g., all chances are 0)
+        // Save this status change immediately so it persists if player leaves
+        try {
+            const charRef = doc(db, "characters", currentCharacterData.id);
+            await updateDoc(charRef, {
+                [`activeMissions.${missionId}.status`]: 'OBJECTIVES_MET' // Update specific mission status
+            });
+            console.log(`Mission status for '${missionId}' updated to OBJECTIVES_MET in Firestore.`);
+        } catch (error) {
+            console.error(`Failed to update mission ${missionId} status to OBJECTIVES_MET in Firestore:`, error);
+            // Potentially revert local status change if save fails, or handle on next load
+            activeMission.status = 'ACTIVE'; // Revert if critical
+            return false;
+        }
+
+        // If the missions panel is currently active, refresh it to show the "Claim Rewards" button
+        if (document.getElementById('missions-panel')?.classList.contains('active')) {
+            displayMissionsPanel();
+        }
+        return true; // Indicated mission status changed
+    }
+    return false; // No change in overall mission completion status
+}
+
+/**
+ * Processes a completed mission: grants rewards, updates status, and saves.
+ * @param {string} missionId The ID of the completed mission.
+ */
+async function completeMission(missionId) {
+    if (!currentCharacterData || !currentCharacterData.activeMissions || !currentCharacterData.activeMissions[missionId]) {
+        console.warn(`completeMission: Mission ${missionId} not active for completion.`);
+        return;
+    }
+
+    const missionDef = MISSION_DEFINITIONS[missionId];
+    if (!missionDef) {
+        console.error(`completeMission: Definition not found for mission ${missionId}.`);
+        return;
+    }
+
+    console.log(`--- Completing Mission: ${missionDef.title} ---`);
+    addCombatLogMessage(`Mission Complete: ${missionDef.title}!`, 'success'); // Add 'success' type for styling later
+
+    // --- Grant Rewards ---
+    let rewardsGivenMessage = ["Rewards:"];
+    let progressChangedForSave = false;
+
+    // XP
+    if (missionDef.rewards.xp > 0) {
+        currentCharacterData.experience = (currentCharacterData.experience || 0) + missionDef.rewards.xp;
+        rewardsGivenMessage.push(`${missionDef.rewards.xp} XP`);
+        progressChangedForSave = true;
+        console.log(`Granted ${missionDef.rewards.xp} XP.`);
+    }
+    // Credits
+    if (missionDef.rewards.credits > 0) {
+        currentCharacterData.currency = (currentCharacterData.currency || 0) + missionDef.rewards.credits;
+        rewardsGivenMessage.push(`${missionDef.rewards.credits} Credits`);
+        progressChangedForSave = true;
+        console.log(`Granted ${missionDef.rewards.credits} Credits.`);
+    }
+    // Items
+    if (missionDef.rewards.items && missionDef.rewards.items.length > 0) {
+        let itemsAddedSuccessfully = true;
+        missionDef.rewards.items.forEach(itemReward => {
+            const itemBase = ITEM_DEFINITIONS[itemReward.itemId];
+            if (!itemBase) {
+                console.warn(`Reward item definition not found: ${itemReward.itemId}`);
+                return; // Skip this reward item
             }
+            // Simplified item adding - assumes non-stackable reward items or new stacks
+            // TODO: Enhance with proper stacking logic from pickupLootItem if rewards can be large stacks
+            if (currentCharacterData.inventory.length < (currentCharacterData.inventorySize || 60)) {
+                let quantityToAdd = itemReward.quantity || 1;
+                // For now, add as separate entries or find first stack (basic)
+                let existingStack = null;
+                if(itemBase.stackable) {
+                    existingStack = currentCharacterData.inventory.find(invItem => invItem.id === itemBase.id && (invItem.quantity < (itemBase.maxStack || 50)));
+                }
 
-            // 2. Get Item Pool for that Rarity
-            const pool = lootTable.itemPools?.[rarity];
-            if (!pool || pool.length === 0) {
-                console.log(`    -> No items defined in pool for rarity: ${rarity}`);
-                continue; // Skip if pool is empty or doesn't exist
+                if (existingStack) {
+                    const canAdd = (itemBase.maxStack || 50) - existingStack.quantity;
+                    const actualAdd = Math.min(quantityToAdd, canAdd);
+                    existingStack.quantity += actualAdd;
+                    quantityToAdd -= actualAdd;
+                }
+                if (quantityToAdd > 0) { // If still items to add (or wasn't stackable/no existing stack)
+                     for(let i = 0; i < quantityToAdd; i++){ // Add remaining as new stacks (or individual non-stackables)
+                         if(currentCharacterData.inventory.length < (currentCharacterData.inventorySize || 60)){
+                            currentCharacterData.inventory.push({ ...itemBase, quantity: 1 }); // Add as single item/stack start
+                         } else {
+                             itemsAddedSuccessfully = false;
+                             rewardsGivenMessage.push(`(Inventory Full for some ${itemBase.name})`);
+                             console.warn(`Inventory full, could not add all ${itemBase.name}`);
+                             break;
+                         }
+                     }
+                }
+                if(itemsAddedSuccessfully) rewardsGivenMessage.push(`${itemReward.quantity}x ${itemBase.name}`);
+                progressChangedForSave = true;
+            } else {
+                itemsAddedSuccessfully = false;
+                rewardsGivenMessage.push(`(Inventory Full for ${itemBase.name})`);
+                console.warn(`Inventory full, could not add reward: ${itemBase.name}`);
             }
+        });
+         console.log("Granted items (check inventory).");
+    }
 
-            // 3. Choose Item from Pool
-            const itemId = pool[Math.floor(Math.random() * pool.length)];
-            const itemBaseData = ITEM_DEFINITIONS[itemId];
+    if (rewardsGivenMessage.length > 1) {
+        addCombatLogMessage(rewardsGivenMessage.join(' '), 'reward');
+    }
 
-            if (!itemBaseData) {
-                console.warn(`    -> Item definition missing for ID: ${itemId} in rarity pool ${rarity}`);
-                continue; // Skip if base item definition is missing
-            }
+    // Check for level up after XP reward
+    if (missionDef.rewards.xp > 0) {
+        if(checkForLevelUp()) progressChangedForSave = true;
+        updateXpBarDisplay();
+    }
+    // Update town currency if it changed and town is visible
+    if (missionDef.rewards.credits > 0 && townCurrency && townScreen && !townScreen.classList.contains('hidden')) {
+        townCurrency.textContent = currentCharacterData.currency;
+    }
 
-            // 4. Generate Item Instance (Simple copy for now)
-            // TODO: Implement instance generation with potential stat variations based on rarity here
-            let itemInstance = { ...itemBaseData };
-            // Ensure rarity is tagged if not inherent in base definition
-            itemInstance.rarity = itemBaseData.rarity || rarity;
+    // --- Update Mission Status ---
+    delete currentCharacterData.activeMissions[missionId]; // Remove from active
+    if (!currentCharacterData.completedMissions.includes(missionId)) {
+        currentCharacterData.completedMissions.push(missionId);
+    }
+    console.log(`Mission '${missionDef.title}' moved to completed.`);
+    progressChangedForSave = true;
 
-            // Add unique instance ID if needed later for modified items
-            // itemInstance.instanceId = `item_${Date.now()}_${i}`;
+    // --- Unlock Next Mission (if any) ---
+    if (missionDef.rewards.unlocksMission) {
+        const nextMissionId = missionDef.rewards.unlocksMission;
+        const nextMissionDef = MISSION_DEFINITIONS[nextMissionId];
+        if (nextMissionDef && !currentCharacterData.activeMissions[nextMissionId] && !currentCharacterData.completedMissions.includes(nextMissionId)) {
+            currentCharacterData.activeMissions[nextMissionId] = {
+                missionId: nextMissionId,
+                status: 'ACTIVE',
+                objectivesProgress: {}
+            };
+            nextMissionDef.objectives.forEach(objDef => {
+                currentCharacterData.activeMissions[nextMissionId].objectivesProgress[objDef.id] = {
+                    currentCount: 0,
+                    isComplete: false
+                };
+            });
+            console.log(`Unlocked new mission: ${nextMissionDef.title}`);
+            addCombatLogMessage(`New Mission Available: ${nextMissionDef.title}`, 'quest');
+            progressChangedForSave = true;
+        }
+    }
+    // TODO: Handle other unlock types (unlocksZone, unlocksUpgrade)
 
-            droppedLoot.push({ type: 'item', itemData: itemInstance });
-            console.log(`    -> Dropped Item: ${itemInstance.name} (Rarity: ${rarity})`);
+    // --- Save All Changes ---
+    if (progressChangedForSave) {
+        try {
+            const charRef = doc(db, "characters", currentCharacterData.id);
+            await updateDoc(charRef, {
+                level: currentCharacterData.level,
+                experience: currentCharacterData.experience,
+                xpToNextLevel: currentCharacterData.xpToNextLevel,
+                currency: currentCharacterData.currency,
+                inventory: currentCharacterData.inventory,
+                activeMissions: currentCharacterData.activeMissions,
+                completedMissions: currentCharacterData.completedMissions,
+                unlockedZones: currentCharacterData.unlockedZones, // If zones were unlocked
+                unlockedUpgrades: currentCharacterData.unlockedUpgrades // If upgrades were unlocked
+            });
+            console.log("Character data saved after mission completion.");
+        } catch (error) {
+            console.error("Failed to save character data after mission completion:", error);
         }
     }
 
-    // --- Add dropped loot to the zone's loot pool ---
-    if (droppedLoot.length > 0) {
-        currentZoneLoot.push(...droppedLoot);
-        displayLoot(); // Update the loot display UI
+    // --- Refresh UI if specific panels are active ---
+    if (document.getElementById('missions-panel')?.classList.contains('active')) {
+        displayMissionsPanel();
+    }
+    if (document.getElementById('station-panel')?.classList.contains('active')) { // If ship upgrades panel was affected
+        displayShipPanel();
+    }
+    // Town header level/currency/xp already updated by checkForLevelUp or directly
+    console.log(`--- Mission ${missionDef.title} Completion Processed ---`);
+}
+
+// Add near other UI helper functions
+const zoneCompletionOverlay = document.getElementById('zone-completion-overlay');
+
+function showZoneCompletionOptions(show = true) {
+    if (zoneCompletionOverlay) {
+        zoneCompletionOverlay.classList.toggle('hidden', !show);
     }
 }
-// END OF NEW FUNCTION BLOCK
-// NEW FUNCTION BLOCK
+/**
+ * Updates the XP bar display (both town and combat if they exist)
+ * based on currentCharacterData.
+ */
+/**
+ * Updates the XP bar display (both town and combat if they exist)
+ * including the "Lvl X" prefix, based on currentCharacterData.
+ */
+function updateXpBarDisplay() {
+    // Town XP Bar Elements
+    const townXpBarFill = document.getElementById('xp-bar-fill');
+    const townXpBarText = document.getElementById('xp-bar-text');
+    const townXpLevelPrefix = document.getElementById('town-xp-bar-level'); // New span for Lvl in town
 
+    // Combat XP Bar Elements
+    const combatXpBarFill = document.getElementById('combat-xp-bar-fill');
+    const combatXpBarText = document.getElementById('combat-xp-bar-text');
+    const combatXpLevelPrefix = document.getElementById('combat-xp-bar-level'); // New span for Lvl in combat
+
+    // Default values if character data isn't loaded
+    let fillPercent = 0;
+    let xpTextContent = "XP: --/--";
+    let levelTextContent = "--";
+
+    if (currentCharacterData) { // Ensure character data is loaded
+        levelTextContent = currentCharacterData.level || "1"; // Get current level
+
+        if (currentCharacterData.level >= MAX_LEVEL) {
+            fillPercent = 100;
+            xpTextContent = "MAX LEVEL";
+        } else {
+            const xpForNext = (currentCharacterData.xpToNextLevel > 0) ? currentCharacterData.xpToNextLevel : 1;
+            const currentXP = currentCharacterData.experience || 0;
+            fillPercent = (currentXP / xpForNext) * 100;
+            xpTextContent = `XP: ${currentXP} / ${currentCharacterData.xpToNextLevel}`;
+        }
+    }
+
+    const clampedFillWidth = `${Math.max(0, Math.min(100, fillPercent))}%`;
+
+    // Update Town XP Bar
+    if (townXpLevelPrefix) {
+        townXpLevelPrefix.textContent = levelTextContent;
+    }
+    if (townXpBarFill) {
+        townXpBarFill.style.width = clampedFillWidth;
+    }
+    if (townXpBarText) {
+        townXpBarText.textContent = xpTextContent;
+    }
+
+    // Update Combat XP Bar
+    if (combatXpLevelPrefix) {
+        combatXpLevelPrefix.textContent = levelTextContent;
+    }
+    if (combatXpBarFill) {
+        combatXpBarFill.style.width = clampedFillWidth;
+    }
+    if (combatXpBarText) {
+        combatXpBarText.textContent = xpTextContent;
+    }
+}
 /**
  * Renders the currentZoneLoot into the right placeholder card UI.
  */
@@ -1171,8 +1711,92 @@ document.addEventListener('DOMContentLoaded', () => {
     if (createNewCharButton) { createNewCharButton.addEventListener('click', () => { clearErrors(); resetSelectionState(); showScreen('char-create'); if(charNameInput) charNameInput.value=''; if(selectedClassInput) selectedClassInput.value=''; classSelectionGrid?.querySelectorAll('.class-card.selected').forEach(c=>c.classList.remove('selected')); }); }
     if (backToSelectButton) { backToSelectButton.addEventListener('click', () => { clearErrors(); showScreen('char-select'); }); }
     if (classSelectionGrid) { classSelectionGrid.addEventListener('click', (event) => { const btn=event.target.closest('.class-select-button'); if(btn){ const card=btn.closest('.class-card'); if(!card)return; const name=card.dataset.class; classSelectionGrid.querySelectorAll('.class-card.selected').forEach(c=>c.classList.remove('selected')); card.classList.add('selected'); if(selectedClassInput){selectedClassInput.value=name;} } }); }
-    if (createButton) { createButton.addEventListener('click', async () => { clearErrors(); const name = charNameInput?.value.trim() || ''; const cls = selectedClassInput?.value || ''; const user = auth.currentUser; if (!user) { displayError(charCreateError, "Not logged in."); showScreen('login'); return; } if (!name) { displayError(charCreateError, "Enter name."); return; } if (name.length > 20) { displayError(charCreateError, "Name too long."); return; } if (!cls) { displayError(charCreateError, "Select class."); return; } createButton.disabled = true; displayError(charCreateError, "Creating..."); try { const skillAssignments = {}; const equippedItems = {}; let startingHp = 150, startingMaxHp = 150, startingMana = 100, startingMaxMana = 100; if (cls === 'Juggernaut') { equippedItems['weapon1'] = { ...ITEM_DEFINITIONS['starter_mace'] }; skillAssignments[4] = 'basic_strike'; startingHp = 200; startingMaxHp = 200; startingMana = 80; startingMaxMana = 80; } else if (cls === 'Sharpshooter') { /* TODO */ startingHp = 120; startingMaxHp = 120; startingMana = 120; startingMaxMana = 120; skillAssignments[4] = 'basic_strike'; /* Assign basic strike default */ } const data = { userId: user.uid, name, class: cls, level: 1, experience: 0, currency: 0, location: "Starhaven", unlockedZones: ['landing_zone_alpha'], createdAt: Timestamp.fromDate(new Date()), inventory: [], inventorySize: 60, equipped: equippedItems, skillAssignments, hp: startingHp, maxHp: startingMaxHp, mana: startingMana, maxMana: startingMaxMana }; await addDoc(collection(db, 'characters'), data); showScreen('char-select'); loadCharacters(user.uid); } catch (e) { console.error("Create char error:", e); displayError(charCreateError, `Failed: ${e.message}`); } finally { if (createButton) createButton.disabled = false; if (charCreateError && charCreateError.textContent === "Creating character...") { clearErrors(); } } }); }
-    if (townNav) { townNav.addEventListener('click', (event) => { if (event.target.classList.contains('town-nav-button') && !event.target.classList.contains('active')) { const panelId = event.target.dataset.panel; if(panelId) activateTownPanel(panelId); } }); }
+    if (createButton) {
+        createButton.addEventListener('click', async () => {
+            clearErrors();
+            const name = charNameInput?.value.trim() || '';
+            const cls = selectedClassInput?.value || '';
+            const user = auth.currentUser;
+            if (!user) {
+                displayError(charCreateError, "Not logged in.");
+                showScreen('login');
+                return;
+            }
+            if (!name) {
+                displayError(charCreateError, "Enter name.");
+                return;
+            }
+            if (name.length > 20) {
+                displayError(charCreateError, "Name too long.");
+                return;
+            }
+            if (!cls) {
+                displayError(charCreateError, "Select class.");
+                return;
+            }
+            createButton.disabled = true;
+            displayError(charCreateError, "Creating...");
+            try {
+                const skillAssignments = {};
+                const equippedItems = {};
+                let startingHp = 150,
+                    startingMaxHp = 150,
+                    startingMana = 100,
+                    startingMaxMana = 100;
+                if (cls === 'Juggernaut') {
+                    equippedItems['weapon1'] = { ...ITEM_DEFINITIONS['starter_mace']
+                    };
+                    skillAssignments[4] = 'basic_strike';
+                    startingHp = 200;
+                    startingMaxHp = 200;
+                    startingMana = 80;
+                    startingMaxMana = 80;
+                } else if (cls === 'Sharpshooter') {
+                    /* TODO */
+                    startingHp = 120;
+                    startingMaxHp = 120;
+                    startingMana = 120;
+                    startingMaxMana = 120;
+                    skillAssignments[4] = 'basic_strike'; /* Assign basic strike default */
+                }
+                const data = {
+                    userId: user.uid,
+                    name,
+                    class: cls,
+                    level: 1,
+                    experience: 0,
+                    xpToNextLevel: XP_FOR_LEVEL[1], // XP needed to reach level 2
+                    currency: 0,
+                    location: "Starhaven",
+                    unlockedZones: ['landing_zone_alpha'],
+                    createdAt: Timestamp.fromDate(new Date()),
+                    inventory: [],
+                    inventorySize: 60,
+                    equipped: equippedItems,
+                    skillAssignments,
+                    hp: startingHp,
+                    maxHp: startingMaxHp,
+                    mana: startingMana,
+                    maxMana: startingMaxMana,
+                    shipName: DEFAULT_SHIP_NAME,
+                    unlockedUpgrades: [],
+                    activeMissions: {}, // Stores active mission progress
+                    completedMissions: [], // Stores IDs of completed missions
+                };
+                await addDoc(collection(db, 'characters'), data);
+                showScreen('char-select');
+                loadCharacters(user.uid);
+            } catch (e) {
+                console.error("Create char error:", e);
+                displayError(charCreateError, `Failed: ${e.message}`);
+            } finally {
+                if (createButton) createButton.disabled = false;
+                if (charCreateError && charCreateError.textContent === "Creating character...") {
+                    clearErrors();
+                }
+            }
+        });
+    }    if (townNav) { townNav.addEventListener('click', (event) => { if (event.target.classList.contains('town-nav-button') && !event.target.classList.contains('active')) { const panelId = event.target.dataset.panel; if(panelId) activateTownPanel(panelId); } }); }
     if (townLogoutButton) { townLogoutButton.addEventListener('click', () => { currentCharacterData = null; signOut(auth).catch((e) => console.error("Logout error:", e)); }); }
     if (townSwitchCharButton) { townSwitchCharButton.addEventListener('click', () => { currentCharacterData = null; showScreen('char-select'); }); }
     if (mapNodeList) { mapNodeList.addEventListener('click', (event) => { const nodeButton = event.target.closest('.map-node'); if (nodeButton && !nodeButton.disabled) { mapNodeList.querySelectorAll('.map-node.selected').forEach(node => node.classList.remove('selected')); nodeButton.classList.add('selected'); selectedZoneId = nodeButton.dataset.zoneId; if (enterZoneButton) enterZoneButton.removeAttribute('disabled'); } }); }
@@ -1197,6 +1821,99 @@ async function loadCharacters(userId) {
     catch (error) { console.error("loadChars Error:", error); displayError(charSelectError, "Load failed."); listDiv.innerHTML = '<p class="no-characters-message" style="color: red;">Error loading.</p>'; }
 }
 
+function initializeStartingMissions() {
+    if (!currentCharacterData) return;
+
+    // Check if activeMissions is an object and if it's empty
+    const noActiveMissions = !currentCharacterData.activeMissions || Object.keys(currentCharacterData.activeMissions).length === 0;
+    // Also ensure completedMissions exists
+    if (!Array.isArray(currentCharacterData.completedMissions)) {
+        currentCharacterData.completedMissions = [];
+    }
+
+    if (noActiveMissions) {
+        console.log("No active missions found, initializing starting missions.");
+        currentCharacterData.activeMissions = {}; // Ensure it's an object
+
+        // Add the first main mission
+        const firstMainMissionId = 'main_act1_01_clear_landing_zone';
+        const firstMainMissionDef = MISSION_DEFINITIONS[firstMainMissionId];
+        if (firstMainMissionDef) {
+            currentCharacterData.activeMissions[firstMainMissionId] = {
+                missionId: firstMainMissionId,
+                status: 'ACTIVE',
+                objectivesProgress: {}
+            };
+            firstMainMissionDef.objectives.forEach(objDef => {
+                currentCharacterData.activeMissions[firstMainMissionId].objectivesProgress[objDef.id] = {
+                    currentCount: 0,
+                    isComplete: false
+                };
+            });
+            console.log(`Added starting mission: ${firstMainMissionDef.title}`);
+        }
+        // Potential: Save character data here if missions were added, or save on next natural save point.
+        // For now, let's assume it will be saved when other progress (like XP) is saved.
+    }
+}
+
+/**
+ * Checks if the character has enough XP to level up and processes the level up.
+ * Handles multiple level-ups if enough XP is gained.
+ * Returns true if a level up occurred, false otherwise.
+ */
+function checkForLevelUp() {
+    if (!currentCharacterData || currentCharacterData.level >= MAX_LEVEL) {
+        return false; // Cannot level up if at max level or no data
+    }
+
+    let leveledUp = false;
+    // Loop in case of multiple level-ups from a single XP gain
+    while (currentCharacterData.experience >= currentCharacterData.xpToNextLevel && currentCharacterData.level < MAX_LEVEL) {
+        currentCharacterData.level++;
+        currentCharacterData.experience -= currentCharacterData.xpToNextLevel; // Subtract XP needed for the level just gained
+        
+        // Update xpToNextLevel for the new current level
+        if (currentCharacterData.level < MAX_LEVEL) {
+            currentCharacterData.xpToNextLevel = XP_FOR_LEVEL[currentCharacterData.level] || Infinity; // Infinity if somehow out of bounds
+        } else { // Reached MAX_LEVEL
+            currentCharacterData.xpToNextLevel = 0; // Or some indicator of maxed
+            currentCharacterData.experience = 0; // Cap XP at max level
+        }
+
+        leveledUp = true;
+        const levelUpMessage = `LEVEL UP! Reached Level ${currentCharacterData.level}!`;
+        console.log(levelUpMessage);
+        if (isCombatActive && combatLog) { // Add to combat log if in combat
+            addCombatLogMessage(levelUpMessage);
+        } else if (overviewPanel && overviewPanel.classList.contains('active')) { // Add to overview if in town
+            // Could display a temporary message on the overview panel
+        }
+
+        // TODO: Implement other level up benefits:
+        // - Attribute points
+        // - Skill points
+        // - Full heal HP/Mana
+        // - Unlock new skills based on level/class
+        // For now, just update stats that might depend on level (e.g. HP/Mana, if they scale)
+        // PLAYER_STATS_PLACEHOLDER.maxHp = 150 + (currentCharacterData.level -1) * 10; // Example scaling
+        // PLAYER_STATS_PLACEHOLDER.currentHp = PLAYER_STATS_PLACEHOLDER.maxHp;
+        // PLAYER_STATS_PLACEHOLDER.maxMana = 100 + (currentCharacterData.level -1) * 5;
+        // PLAYER_STATS_PLACEHOLDER.currentMana = PLAYER_STATS_PLACEHOLDER.maxMana;
+        // updateResourceDisplay(); // If combat UI needs update
+    }
+
+    if (leveledUp) {
+        // Update level display in town header if town is visible
+        if (townCharLevel && townScreen && !townScreen.classList.contains('hidden')) {
+            townCharLevel.textContent = currentCharacterData.level;
+        }
+        // Update XP bar if it exists and is visible
+        updateXpBarDisplay(); // We will create this function next
+    }
+    return leveledUp;
+}
+
 // --- Delete Character Function ---
 async function deleteCharacter(characterId) {
     if (!characterId || !db) return;
@@ -1207,22 +1924,113 @@ async function deleteCharacter(characterId) {
 }
 
 // --- Launch Game Function (Shows Town) ---
+/**
+ * Loads character data and launches the player into the town screen.
+ * Updates UI elements including character info, level, currency, and XP bar.
+ * @param {string} characterId The ID of the character to launch.
+ */
 async function launchGame(characterId) {
-    displayError(charSelectError, "Loading data...");
-    try { const charDocSnap = await getDoc(doc(db, "characters", characterId));
+    displayError(charSelectError, "Loading character data..."); // Show loading feedback
+    try {
+        const charDocSnap = await getDoc(doc(db, "characters", characterId));
         if (charDocSnap.exists()) {
             currentCharacterData = { id: charDocSnap.id, ...charDocSnap.data() };
-            skillBar.slots.forEach(slot => { slot.skillId = null; slot.cooldownUntil = 0; slot.cooldownStart = 0; });
-            if (currentCharacterData.skillAssignments) { skillBar.slots.forEach((slot, i) => { if(slot && currentCharacterData.skillAssignments[i]){ slot.skillId = currentCharacterData.skillAssignments[i] || null; } }); }
-            else { setPlayerAppearance(); }
-            if (townCharName) townCharName.textContent = currentCharacterData.name || 'N/A'; if (townCharLevel) townCharLevel.textContent = currentCharacterData.level || '1'; if (townCharClass) townCharClass.textContent = currentCharacterData.class || 'N/A'; if (townCurrency) townCurrency.textContent = currentCharacterData.currency || '0';
-            activateTownPanel('overview-panel'); showScreen('town'); clearErrors();
-        } else { displayError(charSelectError, "Load Error: Not found."); }
-    } catch (error) { console.error("Fetch error:", error); displayError(charSelectError, `Load Error: ${error.message}`); }
+            initializeStartingMissions();
+            // --- Initialize/Validate XP data for the character ---
+            // This handles characters created before the XP system or if data is somehow missing
+            if (!currentCharacterData.xpToNextLevel || (currentCharacterData.xpToNextLevel === 0 && currentCharacterData.level < MAX_LEVEL)) {
+                if (currentCharacterData.level > 0 && currentCharacterData.level < MAX_LEVEL) {
+                    currentCharacterData.xpToNextLevel = XP_FOR_LEVEL[currentCharacterData.level] || Infinity;
+                } else if (currentCharacterData.level === MAX_LEVEL) {
+                    currentCharacterData.xpToNextLevel = 0; // Indicates max level reached
+                    currentCharacterData.experience = 0; // Cap XP at max level
+                } else { // Default for new or level 1 characters if data is inconsistent
+                    currentCharacterData.level = 1;
+                    currentCharacterData.experience = 0;
+                    currentCharacterData.xpToNextLevel = XP_FOR_LEVEL[1];
+                }
+                // Consider saving this back to Firestore if it was missing/corrected,
+                // though typically it's updated upon XP gain.
+            }
+            // ----------------------------------------------------
+
+            // --- Setup Skill Bar ---
+            skillBar.slots.forEach(slot => {
+                slot.skillId = null;
+                slot.cooldownUntil = 0;
+                slot.cooldownStart = 0;
+            });
+            if (currentCharacterData.skillAssignments) {
+                skillBar.slots.forEach((slot, i) => {
+                    if (slot && currentCharacterData.skillAssignments[i]) {
+                        slot.skillId = currentCharacterData.skillAssignments[i] || null;
+                    }
+                });
+            } else {
+                // If no assignments, set default appearance/skills based on class
+                setPlayerAppearance(); // Ensures basic_strike or class defaults are set
+            }
+            // ------------------------
+
+            // --- Update Town Header UI ---
+            if (townCharName) townCharName.textContent = currentCharacterData.name || 'N/A';
+            if (townCharLevel) townCharLevel.textContent = currentCharacterData.level || '1';
+            if (townCharClass) townCharClass.textContent = currentCharacterData.class || 'N/A';
+            if (townCurrency) townCurrency.textContent = currentCharacterData.currency || '0';
+            // ---------------------------
+
+            // --- Update XP Bar Display ---
+            updateXpBarDisplay();
+            // ---------------------------
+
+            activateTownPanel('overview-panel'); // Or your preferred default panel
+            showScreen('town');
+            clearErrors(); // Clear any errors from character select
+            console.log("Game launched for character:", currentCharacterData.name, "Level:", currentCharacterData.level);
+
+        } else {
+            displayError(charSelectError, "Load Error: Character document not found.");
+            console.error("Character not found for ID:", characterId);
+        }
+    } catch (error) {
+        console.error("Error fetching character data for launchGame:", error);
+        displayError(charSelectError, `Load Error: ${error.message}`);
+    }
 }
 
 // --- Town Screen Logic ---
-function activateTownPanel(panelId) { townNav.querySelector('.town-nav-button.active')?.classList.remove('active'); if (townMainContent) { townMainContent.querySelector('.town-panel.active')?.classList.add('hidden'); townMainContent.querySelector('.town-panel.active')?.classList.remove('active'); } else return; const newButton = townNav.querySelector(`.town-nav-button[data-panel="${panelId}"]`); const newPanel = document.getElementById(panelId); if (newButton) newButton.classList.add('active'); if (newPanel) { newPanel.classList.remove('hidden'); newPanel.classList.add('active'); switch (panelId) { case 'overview-panel': displayOverviewPanel(); break; case 'inventory-panel': displayInventoryPanel(); break; case 'missions-panel': displayMissionsPanel(); break; case 'station-panel': displayStationPanel(); break; case 'stats-panel': displayStatsPanel(); break; case 'skills-panel': displaySkillsPanel(); break; case 'map-panel': displayMapPanel(); break; case 'vendor-panel': displayVendorPanel(); break; case 'crafting-panel': displayCraftingPanel(); break; default: break; } } else { console.error("Panel not found:", panelId); } }
+function activateTownPanel(panelId) {
+    townNav.querySelector('.town-nav-button.active')?.classList.remove('active');
+    if (townMainContent) {
+        townMainContent.querySelector('.town-panel.active')?.classList.add('hidden');
+        townMainContent.querySelector('.town-panel.active')?.classList.remove('active');
+    } else {
+        return;
+    }
+    const newButton = townNav.querySelector(`.town-nav-button[data-panel="${panelId}"]`);
+    const newPanel = document.getElementById(panelId);
+    if (newButton) {
+        newButton.classList.add('active');
+    }
+    if (newPanel) {
+        newPanel.classList.remove('hidden');
+        newPanel.classList.add('active');
+        switch (panelId) {
+            case 'overview-panel': displayOverviewPanel(); break;
+            case 'inventory-panel': displayInventoryPanel(); break;
+            case 'missions-panel': displayMissionsPanel(); break;
+            case 'station-panel': displayShipPanel(); break; // CHANGED
+            case 'stats-panel': displayStatsPanel(); break;
+            case 'skills-panel': displaySkillsPanel(); break;
+            case 'map-panel': displayMapPanel(); break;
+            case 'vendor-panel': displayVendorPanel(); break;
+            case 'crafting-panel': displayCraftingPanel(); break;
+            default: break;
+        }
+    } else {
+        console.error("Panel not found:", panelId);
+    }
+}
 function displayOverviewPanel() { if (!currentCharacterData) return; if (overviewCharName) overviewCharName.textContent = currentCharacterData.name || 'Traveler'; }
 /**
  * Displays the Loadout/Inventory panel, enabling right-click context menus.
@@ -1387,8 +2195,282 @@ async function saveEquipmentAndInventory() {
         // local data might be out of sync with DB if this save fails.
     }
 }
-function displayMissionsPanel() { /* TODO */ }
-function displayStationPanel() { /* TODO */ }
+/**
+ * Displays the list of active main and side missions in the missions panel.
+ * Shows "Claim Rewards" button for missions with objectives met.
+ */
+function displayMissionsPanel() {
+    const panel = document.getElementById('missions-panel');
+    if (!panel) {
+        console.error("Missions panel element not found!");
+        return;
+    }
+    panel.innerHTML = ''; // Clear previous content
+
+    const title = document.createElement('h3');
+    title.className = 'panel-title';
+    title.textContent = 'Mission Log'; // Changed title slightly
+    panel.appendChild(title);
+
+    // --- Active Missions Section ---
+    const activeMissionsSection = document.createElement('div');
+    activeMissionsSection.id = 'active-missions-section';
+    const activeHeader = document.createElement('h4');
+    activeHeader.className = 'mission-category-title';
+    activeHeader.textContent = 'Active Missions';
+    activeMissionsSection.appendChild(activeHeader);
+    panel.appendChild(activeMissionsSection);
+
+
+    if (!currentCharacterData || !currentCharacterData.activeMissions || Object.keys(currentCharacterData.activeMissions).length === 0) {
+        const noMissionsMsg = document.createElement('p');
+        noMissionsMsg.textContent = "No active missions.";
+        noMissionsMsg.className = 'no-characters-message';
+        activeMissionsSection.appendChild(noMissionsMsg);
+        // Still proceed to render completed section if needed
+    } else {
+        let displayedActiveMissionCount = 0;
+        // Separate into Main and Side for display order (optional, or just sort)
+        const activeMainMissions = [];
+        const activeSideMissions = [];
+
+        for (const missionId in currentCharacterData.activeMissions) {
+            const missionDef = MISSION_DEFINITIONS[missionId];
+            if (!missionDef) {
+                console.warn(`Mission definition not found for active mission ID: ${missionId}`);
+                continue;
+            }
+            if (missionDef.type === 'MAIN') {
+                activeMainMissions.push(missionId);
+            } else {
+                activeSideMissions.push(missionId);
+            }
+        }
+        
+        const renderMissionList = (missionIdList, container) => {
+            missionIdList.forEach(missionId => {
+                const activeMissionData = currentCharacterData.activeMissions[missionId];
+                const missionDef = MISSION_DEFINITIONS[missionId]; // Already checked it exists
+
+                const missionCard = document.createElement('div');
+                missionCard.className = 'mission-card';
+                missionCard.classList.add(missionDef.type.toLowerCase());
+                if (activeMissionData.status === 'OBJECTIVES_MET') {
+                    missionCard.classList.add('ready-to-claim');
+                }
+
+                let content = `<h5 class="mission-title">${missionDef.title}</h5>`;
+                if (activeMissionData.status !== 'OBJECTIVES_MET') { // Only show description if not ready to claim
+                    content += `<p class="mission-description">${missionDef.description}</p>`;
+                }
+
+                content += '<div class="mission-objectives-list">';
+                missionDef.objectives.forEach(objDef => {
+                    const progress = activeMissionData.objectivesProgress[objDef.id] || { currentCount: 0, isComplete: false };
+                    const progressText = objDef.requiredCount > 1 ? `(${progress.currentCount || 0} / ${objDef.requiredCount})` : '';
+                    const completedClass = progress.isComplete ? 'completed' : '';
+                    content += `<p class="mission-objective ${completedClass}">- ${objDef.text} ${progressText}</p>`;
+                });
+                content += '</div>';
+
+                // Display Rewards (always visible as a preview)
+                let rewardsText = [];
+                if (missionDef.rewards.xp) rewardsText.push(`${missionDef.rewards.xp} XP`);
+                if (missionDef.rewards.credits) rewardsText.push(`${missionDef.rewards.credits} Credits`);
+                if (missionDef.rewards.items && missionDef.rewards.items.length > 0) {
+                    missionDef.rewards.items.forEach(itemReward => {
+                        const itemDef = ITEM_DEFINITIONS[itemReward.itemId];
+                        rewardsText.push(`${itemReward.quantity}x ${itemDef ? itemDef.name : 'Unknown Item'}`);
+                    });
+                }
+                if (rewardsText.length > 0) {
+                    content += `<p class="mission-rewards">Rewards: ${rewardsText.join(', ')}</p>`;
+                }
+
+                missionCard.innerHTML = content; // Set content first
+
+                // Add "Claim Rewards" button if objectives are met
+                if (activeMissionData.status === 'OBJECTIVES_MET') {
+                    const claimButton = document.createElement('button');
+                    claimButton.className = 'action-button launch-button claim-reward-button'; // Use existing styles
+                    claimButton.textContent = 'Claim Rewards';
+                    claimButton.addEventListener('click', async () => {
+                        claimButton.disabled = true; // Prevent double clicks
+                        claimButton.textContent = 'Claiming...';
+                        await completeMission(missionId); // completeMission will re-render
+                    });
+                    missionCard.appendChild(claimButton);
+                }
+                container.appendChild(missionCard);
+                displayedActiveMissionCount++;
+            });
+        };
+        
+        renderMissionList(activeMainMissions, activeMissionsSection);
+        renderMissionList(activeSideMissions, activeMissionsSection);
+
+        if (displayedActiveMissionCount === 0 && Object.keys(currentCharacterData.activeMissions).length > 0) {
+            // This case might occur if all "active" missions are actually in a non-ACTIVE status
+            // but not yet moved to completedMissions (e.g., a "FAILED" status if we add it)
+            const noMissionsMsg = document.createElement('p');
+            noMissionsMsg.textContent = "No missions currently requiring action.";
+            noMissionsMsg.className = 'no-characters-message';
+            activeMissionsSection.appendChild(noMissionsMsg);
+        }
+    }
+
+
+    // --- Completed Missions Section ---
+    const completedMissionsSection = document.createElement('div');
+    completedMissionsSection.id = 'completed-missions-section';
+    const completedHeader = document.createElement('h4');
+    completedHeader.className = 'mission-category-title completed-title';
+    completedHeader.textContent = 'Completed Missions';
+    completedMissionsSection.appendChild(completedHeader);
+    panel.appendChild(completedMissionsSection);
+
+    if (!currentCharacterData.completedMissions || currentCharacterData.completedMissions.length === 0) {
+        const noCompletedMsg = document.createElement('p');
+        noCompletedMsg.textContent = "No missions completed yet.";
+        noCompletedMsg.className = 'no-items-message';
+        completedMissionsSection.appendChild(noCompletedMsg);
+    } else {
+        currentCharacterData.completedMissions.forEach(missionId => {
+            const missionDef = MISSION_DEFINITIONS[missionId];
+            if (!missionDef) {
+                console.warn(`Definition for completed mission ${missionId} not found.`);
+                return;
+            }
+            const missionCard = document.createElement('div');
+            missionCard.className = 'mission-card completed';
+            missionCard.classList.add(missionDef.type.toLowerCase());
+
+            let content = `<h5 class="mission-title">${missionDef.title}</h5>`;
+            // Could add a summary of rewards received or completion date here later
+            content += `<p class="mission-description"><em>This mission has been completed.</em></p>`;
+            missionCard.innerHTML = content;
+            completedMissionsSection.appendChild(missionCard);
+        });
+    }
+}
+
+/**
+ * Displays the Ship panel with available upgrades.
+ * Builds DOM elements directly to ensure event listeners are attached correctly.
+ */
+function displayShipPanel() {
+    console.log("Displaying Ship Panel");
+    if (!currentCharacterData) {
+        displayPanelError('station-panel', "Character data not loaded.");
+        return;
+    }
+
+    const panel = document.getElementById('station-panel');
+    if (!panel) {
+        console.error("Ship panel element (#station-panel) not found!");
+        return;
+    }
+
+    const panelTitle = panel.querySelector('.panel-title');
+    if (panelTitle) {
+        panelTitle.textContent = `${currentCharacterData.shipName || DEFAULT_SHIP_NAME} - Upgrades`;
+    }
+
+    let upgradesContainer = panel.querySelector('.ship-upgrades-container');
+    if (!upgradesContainer) {
+        upgradesContainer = document.createElement('div');
+        upgradesContainer.className = 'ship-upgrades-container';
+        if (panelTitle) {
+            panelTitle.after(upgradesContainer);
+        } else {
+            panel.appendChild(upgradesContainer);
+        }
+    }
+    upgradesContainer.innerHTML = ''; // Clear previous upgrades
+
+    let errorDisplay = panel.querySelector('.panel-error-display');
+    if (!errorDisplay) {
+        errorDisplay = document.createElement('div');
+        errorDisplay.className = 'error-message panel-error-display';
+        errorDisplay.style.marginBottom = '1rem';
+        upgradesContainer.before(errorDisplay);
+    }
+    errorDisplay.textContent = '';
+
+    for (const upgradeId in SHIP_UPGRADE_DEFINITIONS) {
+        const upgradeDef = SHIP_UPGRADE_DEFINITIONS[upgradeId];
+        const upgradeCard = document.createElement('div');
+        upgradeCard.className = 'upgrade-card';
+
+        let prerequisitesMet = true;
+        if (upgradeDef.prerequisites && upgradeDef.prerequisites.length > 0) {
+            for (const prereqId of upgradeDef.prerequisites) {
+                if (!currentCharacterData.unlockedUpgrades?.includes(prereqId)) {
+                    prerequisitesMet = false;
+                    break;
+                }
+            }
+        }
+
+        // --- Build Card Content by Appending DOM Elements ---
+        const titleEl = document.createElement('h4');
+        titleEl.textContent = upgradeDef.name;
+        upgradeCard.appendChild(titleEl);
+
+        const descEl = document.createElement('p');
+        descEl.className = 'description';
+        descEl.textContent = upgradeDef.description;
+        upgradeCard.appendChild(descEl);
+
+        let costString = "Cost: ";
+        const costs = [];
+        if (upgradeDef.costCredits > 0) {
+            costs.push(`${upgradeDef.costCredits} Credits`);
+        }
+        if (upgradeDef.costItems && upgradeDef.costItems.length > 0) {
+            upgradeDef.costItems.forEach(itemCost => {
+                const itemDef = ITEM_DEFINITIONS[itemCost.itemId];
+                costs.push(`${itemCost.quantity} x ${itemDef ? itemDef.name : itemCost.itemId}`);
+            });
+        }
+        costString += costs.join(', ') || "Free";
+        const costEl = document.createElement('p');
+        costEl.className = 'cost';
+        costEl.textContent = costString;
+        upgradeCard.appendChild(costEl);
+
+        const statusEl = document.createElement('p');
+        statusEl.className = 'status';
+
+        if (currentCharacterData.unlockedUpgrades?.includes(upgradeId)) {
+            statusEl.textContent = "Status: Unlocked";
+            upgradeCard.classList.add('unlocked');
+        } else if (!prerequisitesMet) {
+            const prereqNames = upgradeDef.prerequisites.map(id => SHIP_UPGRADE_DEFINITIONS[id]?.name || id).join(', ');
+            statusEl.textContent = `Locked (Requires: ${prereqNames})`;
+            statusEl.classList.add('locked'); // Add class to status paragraph
+            upgradeCard.classList.add('locked');
+        } else { // Available for purchase/crafting
+            statusEl.textContent = "Status: Available";
+            const actionButton = document.createElement('button');
+            actionButton.className = 'action-button'; // General button style
+            actionButton.textContent = (upgradeDef.costItems && upgradeDef.costItems.length > 0) ? "Craft" : "Purchase";
+
+            // *** Attach listener directly to this DOM element ***
+            actionButton.addEventListener('click', () => {
+                // Add a log here to immediately confirm the click is registered
+                console.log(`Button clicked for upgrade: ${upgradeId}`);
+                attemptPurchaseOrCraftUpgrade(upgradeId);
+            });
+            // ----------------------------------------------------
+            upgradeCard.appendChild(actionButton); // Append the actual button element
+        }
+        upgradeCard.appendChild(statusEl); // Append status element
+        // --- End building card content ---
+
+        upgradesContainer.appendChild(upgradeCard);
+    }
+}
 function displayStatsPanel() { /* TODO */ }
 function displaySkillsPanel() { if (!currentCharacterData || !learnedSkillsList || !skillAssignmentBar) return; const listContainer = learnedSkillsList; const assignmentBar = skillAssignmentBar; listContainer.innerHTML = ''; let skillsHTML = ''; const learned = []; const currentLevel = currentCharacterData.level || 1; const CLEAVE_UNLOCK_LEVEL = 5; if (currentCharacterData.class === 'Juggernaut' ) { learned.push('basic_strike'); if (currentLevel >= CLEAVE_UNLOCK_LEVEL) { learned.push('juggernaut_cleave'); } } else if (currentCharacterData.class === 'Sharpshooter') { learned.push('basic_strike'); learned.push('sharpshooter_piercing_shot'); } if (learned.length === 0) { skillsHTML = '<p class="no-characters-message">No skills learned.</p>'; } else { learned.forEach(id => { const data = ATTACK_DEFINITIONS[id]; if (data) { let dets = `<div class="skill-tags">${data.tags?.join(', ') || ''}</div>`; dets += `<span class="skill-prop">Cost:</span> ${data.cost||0} ${data.costType||''} | <span class="skill-prop">CD:</span> ${data.cooldown||0}ms | <span class="skill-prop">Speed:</span> ${(data.attackSpeedMultiplier*100).toFixed(0)}% | <span class="skill-prop">Effect:</span> ${(data.effectiveness*100).toFixed(0)}%`; if (data.aoe?.type==='grid_shape') { dets += ` | <span class="skill-prop">AoE:</span> ${data.aoe.width}x${data.aoe.height} ${data.aoe.shape||''}${data.aoe.targeting==='centered_on_target'?' (Centered)':''}`; } else if (!data.aoe) { dets += ` | <span class="skill-prop">AoE:</span> Single Target`; } skillsHTML += `<div class="skill-item" data-skill-id="${id}"><div class="skill-name">${data.name||id}</div><div class="skill-details">${dets}</div><div class="skill-description-text">${data.description||''}</div></div>`; } else { skillsHTML += `<div class="skill-item missing-data" data-skill-id="${id}"><div class="skill-name">${id} (Missing)</div></div>`; } }); } listContainer.innerHTML = skillsHTML; const assignSlots = assignmentBar.querySelectorAll('.assign-skill-slot'); assignSlots.forEach((slotDiv, i) => { if (i < skillBar.slots.length) { const assignedId = skillBar.slots[i]?.skillId; const data = assignedId ? ATTACK_DEFINITIONS[assignedId] : null; const keyHTML = slotDiv.querySelector('span')?.outerHTML || `<span>${skillBar.slots[i]?.key || '?'}</span>`; let content = data ? `<div class="assigned-skill-name">${data.name || assignedId}</div>` : `<div class="assigned-skill-name empty">[Empty]</div>`; slotDiv.style.opacity = data ? '1' : '0.6'; slotDiv.innerHTML = content + keyHTML; } }); addSkillPanelListeners(); selectedSkillForAssignment = null; selectedSlotElementForAssignment = null; listContainer.querySelectorAll('.skill-item.selected-for-assignment').forEach(item => item.classList.remove('selected-for-assignment')); assignmentBar.querySelectorAll('.assign-skill-slot.selected-for-assignment').forEach(slot => slot.classList.remove('selected-for-assignment')); }
 function displayMapPanel() {
@@ -1450,6 +2532,127 @@ function displayMapPanel() {
          });
     }
     // ----------------------------------
+}
+/**
+ * Attempts to purchase or craft a ship upgrade.
+ * @param {string} upgradeId The ID of the upgrade to attempt.
+ */
+async function attemptPurchaseOrCraftUpgrade(upgradeId) {
+    console.log(`--- attemptPurchaseOrCraftUpgrade CALLED for ID: ${upgradeId} ---`); // Confirms function entry
+    if (!currentCharacterData || !SHIP_UPGRADE_DEFINITIONS[upgradeId]) {
+        console.error("Missing data for upgrade attempt.");
+        displayPanelError('station-panel', "Error: Upgrade data missing.");
+        return;
+    }
+
+    const upgradeDef = SHIP_UPGRADE_DEFINITIONS[upgradeId];
+    let canAfford = true;
+    let missingItemsMessages = [];
+
+    // 1. Check Credits
+    if (upgradeDef.costCredits > 0 && (currentCharacterData.currency || 0) < upgradeDef.costCredits) {
+        canAfford = false;
+        missingItemsMessages.push(`Not enough credits (Need ${upgradeDef.costCredits})`);
+    }
+
+    // 2. Check Crafting Items
+    const itemsToDeductIndices = {}; // Stores { inventoryIndex: quantityToDeduct }
+
+    if (upgradeDef.costItems && upgradeDef.costItems.length > 0) {
+        for (const requiredItem of upgradeDef.costItems) {
+            let foundQuantity = 0;
+            for (let i = 0; i < currentCharacterData.inventory.length; i++) {
+                const invItem = currentCharacterData.inventory[i];
+                if (invItem && invItem.id === requiredItem.itemId) {
+                    foundQuantity += (invItem.quantity || 1);
+                }
+            }
+
+            if (foundQuantity < requiredItem.quantity) {
+                canAfford = false;
+                const itemDef = ITEM_DEFINITIONS[requiredItem.itemId];
+                missingItemsMessages.push(`Missing ${requiredItem.quantity - foundQuantity} x ${itemDef ? itemDef.name : requiredItem.itemId}`);
+            }
+        }
+    }
+
+    if (!canAfford) {
+        displayPanelError('station-panel', `Cannot unlock ${upgradeDef.name}: ${missingItemsMessages.join(', ')}.`);
+        return;
+    }
+
+    // --- If affordable, proceed with purchase/crafting ---
+    console.log(`Unlocking upgrade: ${upgradeDef.name}`);
+    displayPanelError('station-panel', `Unlocking ${upgradeDef.name}...`); // Clear previous errors
+
+    // 3. Deduct Credits
+    if (upgradeDef.costCredits > 0) {
+        currentCharacterData.currency = (currentCharacterData.currency || 0) - upgradeDef.costCredits;
+    }
+
+    // 4. Deduct Items (More complex due to stacks)
+    if (upgradeDef.costItems && upgradeDef.costItems.length > 0) {
+        const newInventory = [...currentCharacterData.inventory]; // Work on a copy
+
+        for (const requiredItem of upgradeDef.costItems) {
+            let quantityToDeduct = requiredItem.quantity;
+            for (let i = newInventory.length - 1; i >= 0; i--) { // Iterate backwards for safe splicing/modification
+                const invItem = newInventory[i];
+                if (invItem && invItem.id === requiredItem.itemId) {
+                    if ((invItem.quantity || 1) > quantityToDeduct) {
+                        invItem.quantity -= quantityToDeduct;
+                        quantityToDeduct = 0;
+                        break;
+                    } else {
+                        quantityToDeduct -= (invItem.quantity || 1);
+                        newInventory.splice(i, 1); // Remove item/stack
+                        if (quantityToDeduct <= 0) break;
+                    }
+                }
+            }
+        }
+        currentCharacterData.inventory = newInventory; // Assign modified inventory
+    }
+
+    // 5. Add Upgrade
+    if (!currentCharacterData.unlockedUpgrades) {
+        currentCharacterData.unlockedUpgrades = [];
+    }
+    currentCharacterData.unlockedUpgrades.push(upgradeId);
+
+    // 6. Save to Firestore
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            currency: currentCharacterData.currency,
+            inventory: currentCharacterData.inventory,
+            unlockedUpgrades: currentCharacterData.unlockedUpgrades
+        });
+        console.log(`Upgrade ${upgradeDef.name} unlocked and data saved.`);
+        displayPanelError('station-panel', `${upgradeDef.name} unlocked!`); // Success message
+    } catch (error) {
+        console.error("Failed to save upgrade:", error);
+        displayPanelError('station-panel', `Error saving ${upgradeDef.name}. Please try again.`);
+        // TODO: Implement rollback of local changes if save fails (complex)
+        // For now, player might have local changes not reflected in DB.
+        // A robust solution would involve snapshotting state before modification.
+        return; // Stop further UI updates if save failed
+    }
+
+    // 7. Update UI
+    if (townCurrency) townCurrency.textContent = currentCharacterData.currency; // Update header currency
+    displayShipPanel(); // Re-render the ship panel to show new status
+
+    // Handle progression items
+    if (upgradeDef.isProgressionItem && upgradeDef.unlocksFeature === 'canTravelToNextSector') {
+        // Show a special notification or unlock map features
+        console.log("Progression item crafted! Next sector travel potentially unlocked.");
+        // Update character data for act progression if needed
+        // currentCharacterData.currentAct = 2; (or similar)
+        // await updateDoc(charRef, { currentAct: currentCharacterData.currentAct });
+        // TODO: This will require changes to map display logic later
+        alert(`Congratulations! The ${upgradeDef.name} is complete! You feel a shift in the ship's capabilities, allowing travel beyond this star cluster.`);
+    }
 }
 // Add this function definition
 // Add this function definition
@@ -1996,55 +3199,58 @@ function setPlayerAppearance() { if (!currentCharacterData) { skillBar.slots.for
 // --- COMBAT LOGIC FUNCTIONS ---
 let lastTickTime = 0;
 
-// MODIFIED enterCombatZone function
+/**
+ * Initializes and shows the combat screen for a given zone.
+ * @param {string} zoneId The ID of the zone to enter.
+ */
 function enterCombatZone(zoneId) {
     console.log(`--- enterCombatZone CALLED with zoneId: ${zoneId} ---`);
-    currentZoneLoot = []; // Clear loot from previous zone
-    displayLoot(); // Clear the loot UI display
+    currentZoneLoot = [];
+    displayLoot();
     if (!currentCharacterData) { console.error("Cannot enter combat: No character data."); return; }
     if (isCombatActive) { console.warn("Already in combat?"); return; }
 
     const zoneInfo = ZONE_CONFIG[zoneId] || ZONE_CONFIG['default'];
-    console.log("Zone Info:", JSON.stringify(zoneInfo));
-
-    activeZoneId = zoneId; currentPackIndex = 0; totalPacksInZone = zoneInfo.packs || 1;
-    isBossEncounter = false; lastAttackedTargetId = null;
+    activeZoneId = zoneId;
+    currentPackIndex = 0;
+    totalPacksInZone = zoneInfo.packs || 1;
+    isBossEncounter = false;
+    lastAttackedTargetId = null;
 
     if (combatZoneName) combatZoneName.textContent = zoneInfo.name;
 
     if (enemyGrid) {
         const ct = `repeat(${zoneInfo.gridCols}, minmax(90px, 120px))`;
         const rt = `repeat(${zoneInfo.gridRows}, minmax(90px, 120px))`;
-        enemyGrid.style.gridTemplateColumns = ct; enemyGrid.style.gridTemplateRows = rt;
-        console.log(`Set grid style: ${ct} / ${rt}`);
+        enemyGrid.style.gridTemplateColumns = ct;
+        enemyGrid.style.gridTemplateRows = rt;
     } else { console.error("Enemy grid container not found!"); return; }
 
-    showScreen('combat'); // Show screen first
-    renderCombatSkillBar(); // Render skill bar
+    showScreen('combat');
+    renderCombatSkillBar();
+    displayCombatLoadout();
 
-    // --- Display Character Loadout in Combat ---
-    displayCombatLoadout(); // <<< ADD THIS CALL
-    // ----------------------------------------
+    // --- Initialize Player Combat Stats & UI ---
+    // TODO: These should pull directly from currentCharacterData.stats or similar derived values
+    PLAYER_STATS_PLACEHOLDER.currentHp = currentCharacterData.maxHp || PLAYER_STATS_PLACEHOLDER.maxHp; // Example if HP is stored on char
+    PLAYER_STATS_PLACEHOLDER.currentMana = currentCharacterData.maxMana || PLAYER_STATS_PLACEHOLDER.maxMana;
+    updateResourceDisplay(); // Updates HP/Mana bars
 
-    // Initialize Player Combat Stats & Display
-    PLAYER_STATS_PLACEHOLDER.currentHp = PLAYER_STATS_PLACEHOLDER.maxHp;
-    PLAYER_STATS_PLACEHOLDER.currentMana = PLAYER_STATS_PLACEHOLDER.maxMana;
-    updateResourceDisplay();
+    // --- Initialize/Update Combat XP Bar ---
+    updateXpBarDisplay();
+    // ---------------------------------------
 
     if (combatLog) { combatLog.innerHTML = ''; }
     addCombatLogMessage(`Entering ${zoneInfo.name}...`);
 
     isCombatActive = true;
-    console.log("Setting isCombatActive = true");
-    console.log("Calling loadNextEncounter...");
-    loadNextEncounter(); // Load first pack/boss
+    loadNextEncounter();
 
-    lastTickTime = 0; console.log("Starting combat loop...");
+    lastTickTime = 0;
     if (combatLoopRequestId) { cancelAnimationFrame(combatLoopRequestId); }
     combatLoopRequestId = requestAnimationFrame(combatTick);
     addCombatSkillListeners();
 }
-
 // NEW FUNCTION BLOCK
 
 function displayCombatLoadout() {
@@ -2134,10 +3340,12 @@ function displayCombatLoadout() {
 // END OF NEW FUNCTION BLOCK
 
 function leaveCombatZone() {
-    currentZoneLoot = [];
-    displayLoot(); // Clears the UI
+    currentZoneLoot = []; // Clear any remaining loot from the combat zone
+    displayLoot();      // Update the loot UI to be empty
+
     console.log("Leaving combat zone.");
-    isCombatActive = false;
+    isCombatActive = false; // Stop combat loop and related logic
+
     if (combatLoopRequestId) {
         cancelAnimationFrame(combatLoopRequestId);
         combatLoopRequestId = null;
@@ -2150,26 +3358,43 @@ function leaveCombatZone() {
     document.removeEventListener('mousedown', handleCombatMouseClick);
     document.removeEventListener('mouseup', handleCombatMouseRelease);
     document.removeEventListener('contextmenu', preventContextMenu);
-    document.removeEventListener('mousemove', handleCombatMouseMoveRepeat); // Ensure mousemove is removed
+    document.removeEventListener('mousemove', handleCombatMouseMoveRepeat);
 
-    // Reset repeat state
+    // Reset combat state variables
     activeRepeatSkillId = null;
     activeRepeatTargetId = null;
     keysDown = {};
-    // Clear hover target feedback
     document.querySelectorAll('.enemy-card.repeat-hover-target').forEach(el => el.classList.remove('repeat-hover-target'));
+    currentEnemies = [];
+    gridState = [];
+    if (enemyGrid) enemyGrid.innerHTML = ''; // Clear enemy display
+    lastAttackedTargetId = null;
+    activeZoneId = null; // Clear the record of the active combat zone
+    currentPackIndex = 0;
+    totalPacksInZone = 0;
+    isBossEncounter = false;
 
+    // --- Switch to Town Screen & Update Header ---
+    showScreen('town');
+    activateTownPanel('overview-panel'); // Or 'map-panel', or your preferred default
 
-    // ... (rest of leaveCombatZone: clear enemies, grid, target, show town etc.) ...
-     currentEnemies = [];
-     gridState = [];
-     if (enemyGrid) enemyGrid.innerHTML = '';
-     lastAttackedTargetId = null; // Keep resetting this too
+    // --- Explicitly update the town currency, level, and XP bar display ---
+    if (currentCharacterData) { // Ensure character data is available
+        if (townCurrency) {
+            townCurrency.textContent = currentCharacterData.currency || 0;
+        }
+        if (townCharLevel) {
+            townCharLevel.textContent = currentCharacterData.level || '1';
+        }
+        updateXpBarDisplay(); // Update the XP bar with current XP/XP to next level
+        console.log("Updated town UI (currency, level, XP) on returning to town.");
+    }
+    // ------------------------------------------------------------------
 
-     showScreen('town');
-     activateTownPanel('map-panel');
-
-     if (combatLog) { combatLog.scrollTop = combatLog.scrollHeight; }
+    // Scroll combat log to the bottom (if it has content)
+    if (combatLog && combatLog.scrollHeight > combatLog.clientHeight) {
+        combatLog.scrollTop = combatLog.scrollHeight;
+    }
 }
 function loadNextEncounter() {
     console.log(`--- loadNextEncounter CALLED ---`); console.log(`State: currentPack=${currentPackIndex}, totalPacks=${totalPacksInZone}, isBoss=${isBossEncounter}, activeZoneId=${activeZoneId}`); console.log("Checking isCombatActive:", isCombatActive);
@@ -2526,51 +3751,111 @@ function handleLootItemMouseMove(event) {
     }
 }
 
-// END OF MODIFIED FUNCTION BLOCK
-// END OF MODIFIED FUNCTION BLOCK
-// MODIFIED completeZone function
+/**
+ * Handles logic for when a zone is cleared (boss defeated).
+ * Updates COMPLETE_ZONE mission objectives, unlocks next zone, saves progress,
+ * and shows completion options in the header.
+ * @param {string} zoneId The ID of the zone that was completed.
+ */
 async function completeZone(zoneId) {
-    console.log(`Completing zone: ${zoneId}`);
+    console.log(`--- completeZone START for zone: ${zoneId} ---`);
     addCombatLogMessage("Zone Cleared! Congratulations!");
-    isCombatActive = false; // Stop combat loop actions (repeats, AI etc.)
-    activeRepeatSkillId = null; // Ensure no skills are stuck repeating
+    isCombatActive = false; // Stop combat loop actions, enemy attacks etc.
+    activeRepeatSkillId = null;
     activeRepeatTargetId = null;
 
     const zoneInfo = ZONE_CONFIG[zoneId] || ZONE_CONFIG['default'];
-    const nextZoneId = zoneInfo.unlocksZoneId;
+    const nextZoneIdToUnlock = zoneInfo.unlocksZoneId;
+    let characterDataChanged = false; // Flag to indicate if a save to Firestore is needed
 
-    // --- Save Progress ---
-    if (nextZoneId && currentCharacterData) {
+    // --- Update Mission Objectives: COMPLETE_ZONE ---
+    if (currentCharacterData && currentCharacterData.activeMissions) {
+        console.log(`Checking active missions for COMPLETE_ZONE objectives related to ${zoneId}`);
+        for (const missionId in currentCharacterData.activeMissions) {
+            const activeMission = currentCharacterData.activeMissions[missionId];
+            // Only consider missions that are currently 'ACTIVE' (not already 'OBJECTIVES_MET' or other states)
+            if (activeMission.status !== 'ACTIVE') continue;
+
+            const missionDef = MISSION_DEFINITIONS[missionId];
+            if (!missionDef) continue;
+
+            let missionProgressMadeThisIteration = false;
+            for (const objDef of missionDef.objectives) {
+                if (objDef.type === 'COMPLETE_ZONE' && objDef.targetId === zoneId) {
+                    const objectiveProgress = activeMission.objectivesProgress[objDef.id];
+                    if (objectiveProgress && !objectiveProgress.isComplete) {
+                        objectiveProgress.currentCount = (objectiveProgress.currentCount || 0) + 1;
+
+                        if (objectiveProgress.currentCount >= objDef.requiredCount) {
+                            objectiveProgress.isComplete = true;
+                            console.log(`Objective '${objDef.text}' for mission '${missionDef.title}' COMPLETED by clearing zone ${zoneId}.`);
+                            addCombatLogMessage(`Objective Complete: ${missionDef.title} - ${objDef.text.substring(0,30)}...`, 'quest');
+                        }
+                        missionProgressMadeThisIteration = true;
+                        characterDataChanged = true; // Mark that mission progress data changed
+                    }
+                }
+            }
+
+            if (missionProgressMadeThisIteration) {
+                // Check if the entire mission is now ready to claim (this also saves the 'OBJECTIVES_MET' status)
+                await checkMissionCompletion(missionId);
+                // checkMissionCompletion will handle its own save if status changes to OBJECTIVES_MET
+                // but we still mark characterDataChanged for other potential saves if needed.
+            }
+        }
+    }
+    // ------------------------------------------------
+
+    // --- Unlock Next Zone (if applicable) ---
+    if (nextZoneIdToUnlock && currentCharacterData) {
         try {
             const user = auth.currentUser;
-            if (!user) throw new Error("User not logged in.");
-            const charRef = doc(db, "characters", currentCharacterData.id);
-            const currentUnlocked = currentCharacterData.unlockedZones || [];
+            if (!user) throw new Error("User not logged in for zone completion save.");
 
-            if (!currentUnlocked.includes(nextZoneId)) {
-                const updatedUnlocked = [...currentUnlocked, nextZoneId];
-                await updateDoc(charRef, { unlockedZones: updatedUnlocked });
-                currentCharacterData.unlockedZones = updatedUnlocked; // Update local data
-                console.log(`Unlocked zone: ${nextZoneId}`);
-                addCombatLogMessage(`Unlocked: ${ZONE_CONFIG[nextZoneId]?.name || nextZoneId}`);
-            } else {
-                console.log(`Zone ${nextZoneId} was already unlocked.`);
+            const currentUnlocked = currentCharacterData.unlockedZones || [];
+            if (!currentUnlocked.includes(nextZoneIdToUnlock)) {
+                const updatedUnlocked = [...currentUnlocked, nextZoneIdToUnlock];
+                currentCharacterData.unlockedZones = updatedUnlocked; // Update local data first
+                characterDataChanged = true; // Mark that unlockedZones changed
+
+                console.log(`Locally unlocked zone: ${nextZoneIdToUnlock}`);
+                addCombatLogMessage(`New destination available: ${ZONE_CONFIG[nextZoneIdToUnlock]?.name || nextZoneIdToUnlock}`, 'quest');
             }
         } catch (error) {
-            console.error("Failed to update unlocked zones:", error);
-            addCombatLogMessage("Error saving zone completion progress.");
+            // This catch is for the client-side error before DB op, actual DB error handled below
+            console.error("Error preparing to unlock next zone:", error);
+            addCombatLogMessage("Error updating zone progression locally.");
         }
-    } else {
-        console.log("No next zone defined or character data missing.");
     }
-    // --------------------
+    // ------------------------------------
 
-    // --- DO NOT automatically leave the zone ---
-    // REMOVED: setTimeout(leaveCombatZone, 3000);
-    addCombatLogMessage("You may now collect loot or leave the zone.");
-    // The player stays on the combat screen until they click "Leave Zone"
-}
-// END OF MODIFIED FUNCTION
+    // --- Save any character data changes (missions, unlocked zones) ---
+    if (characterDataChanged) {
+        console.log("Character data changed (missions/zones), attempting to save to Firestore.");
+        try {
+            const charRef = doc(db, "characters", currentCharacterData.id);
+            await updateDoc(charRef, {
+                activeMissions: currentCharacterData.activeMissions,
+                unlockedZones: currentCharacterData.unlockedZones
+                // Note: checkMissionCompletion saves its own status update if mission becomes OBJECTIVES_MET
+                // This save ensures other objective progress (counts) or new unlockedZones are saved.
+            });
+            console.log("Mission progress and/or unlocked zones saved after zone completion.");
+        } catch (error) {
+            console.error("Failed to save mission progress/unlocked zones after zone completion:", error);
+            addCombatLogMessage("Error saving progression details.");
+            // Consider how to handle this error - e.g., flag for retry, notify user.
+        }
+    }
+
+    // --- Show and Configure Header Buttons for Completion ---
+    updateCombatHeaderActionButtons('completed', zoneId, nextZoneIdToUnlock);
+    // ----------------------------------------------------
+
+    addCombatLogMessage("Collect any remaining loot or choose an action from the header.");
+    console.log(`--- completeZone END for zone: ${zoneId} ---`);
+}// END OF MODIFIED FUNCTION
 // --- Combat Loop & UI Updates ---
 function updateCooldownVisuals() { if (!playerSkillBarCombat) return; const now = Date.now(); playerSkillBarCombat.querySelectorAll('.combat-skill-slot').forEach((slotDiv, i) => { const overlay = slotDiv.querySelector('.skill-cooldown-overlay'); const text = slotDiv.querySelector('.skill-cooldown-text'); if (!overlay || !text) return; const slotData = skillBar.slots[i]; const cooldownTotal = (slotData.cooldownUntil && slotData.cooldownStart) ? (slotData.cooldownUntil - slotData.cooldownStart) : (ATTACK_DEFINITIONS[slotData.skillId]?.cooldown || 0); const cooldownEnds = slotData.cooldownUntil || 0; if (cooldownTotal > 50 && cooldownEnds > now) { const remaining = cooldownEnds - now; const progress = Math.max(0, Math.min(1, remaining / cooldownTotal)); overlay.style.height = `${progress * 100}%`; const remSec = (remaining / 1000); text.textContent = remSec > 1 ? Math.ceil(remSec) : remSec.toFixed(1); text.style.display = 'block'; slotDiv.style.cursor = 'not-allowed'; } else { if (overlay.style.height !== '0%') overlay.style.height = '0%'; if (text.style.display !== 'none') text.style.display = 'none'; slotDiv.style.cursor = slotDiv.classList.contains('assigned') ? 'pointer' : 'not-allowed'; if (slotData.cooldownStart && cooldownEnds <= now) delete slotData.cooldownStart; } }); }
 function updateResourceDisplay() { const currentHp = PLAYER_STATS_PLACEHOLDER.currentHp; const maxHp = PLAYER_STATS_PLACEHOLDER.maxHp; const currentMana = PLAYER_STATS_PLACEHOLDER.currentMana; const maxMana = PLAYER_STATS_PLACEHOLDER.maxMana; if (playerHealthBar && playerHealthFill && playerHealthText) { const hpP = (maxHp > 0) ? Math.max(0, Math.min(100, (currentHp / maxHp) * 100)) : 0; playerHealthFill.style.width = `${hpP}%`; playerHealthText.textContent = `HP: ${Math.max(0, Math.round(currentHp))}/${maxHp}`; } if (playerManaBar && playerManaFill && playerManaText) { const manaP = (maxMana > 0) ? Math.max(0, Math.min(100, (currentMana / maxMana) * 100)) : 0; playerManaFill.style.width = `${manaP}%`; playerManaText.textContent = `MP: ${Math.max(0, Math.round(currentMana))}/${maxMana}`; } }

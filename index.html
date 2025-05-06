@@ -54,17 +54,24 @@
 
         <div id="town-screen" class="hidden town-container">
              <header class="town-header">
-                 <div id="town-header-info" class="town-header-info">
-                     <span id="town-char-name">Character</span> -
-                     <span>Lvl <span id="town-char-level">1</span></span>
-                     (<span id="town-char-class">Class</span>)
-                     <span class="currency">Credits: <span id="town-currency">0</span></span>
-                 </div>
+                <div id="town-header-info" class="town-header-info">
+                    <span id="town-char-name">Character</span> -
+                    <span>Lvl <span id="town-char-level">1</span></span> (<span id="town-char-class">Class</span>)
+                    <span class="currency">Credits: <span id="town-currency">0</span></span>
+
+                    <div class="xp-display-area town-xp-display-area">
+                        <span class="xp-level-prefix">Lvl <span id="town-xp-bar-level">1</span></span>
+                        <div id="xp-bar-container" class="xp-bar">
+                            <div id="xp-bar-fill" class="xp-bar-fill"></div>
+                            <span id="xp-bar-text" class="xp-bar-text">XP: 0/0</span>
+                        </div>
+                    </div>
+                    </div>
                  <nav id="town-nav" class="town-nav">
                      <button class="town-nav-button active" data-panel="overview-panel">Overview</button>
                      <button class="town-nav-button" data-panel="inventory-panel">Loadout</button>
                      <button class="town-nav-button" data-panel="missions-panel">Missions</button>
-                     <button class="town-nav-button" data-panel="station-panel">Station</button>
+                     <button class="town-nav-button" data-panel="station-panel">Ship</button>
                      <button class="town-nav-button" data-panel="skills-panel">Skills</button>
                      <button class="town-nav-button" data-panel="map-panel">Map</button>
                      <button class="town-nav-button" data-panel="vendor-panel">Trade</button>
@@ -152,23 +159,31 @@
              </main>
 
              <footer class="combat-footer">
-                 <div id="player-resource-bars" class="player-resource-bars">
-                     <div id="player-health-bar" class="resource-bar health-bar">
-                         <div id="player-health-fill" class="resource-fill health-fill"></div>
-                         <span id="player-health-text" class="resource-text">HP: 0/0</span>
-                     </div>
-                     <div id="player-mana-bar" class="resource-bar mana-bar">
-                         <div id="player-mana-fill" class="resource-fill mana-fill"></div>
-                         <span id="player-mana-text" class="resource-text">MP: 0/0</span>
-                     </div>
-                 </div>
+                <div id="player-resource-bars" class="player-resource-bars">
+                    <div id="player-health-bar" class="resource-bar health-bar">
+                        <div id="player-health-fill" class="resource-fill health-fill"></div>
+                        <span id="player-health-text" class="resource-text">HP: 0/0</span>
+                    </div>
+                    <div id="player-mana-bar" class="resource-bar mana-bar">
+                        <div id="player-mana-fill" class="resource-fill mana-fill"></div>
+                        <span id="player-mana-text" class="resource-text">MP: 0/0</span>
+                    </div>
 
-                 <div id="player-skill-bar" class="player-skill-bar-container">
-                     </div>
+                    <div class="xp-display-area combat-xp-display-area">
+                        <span class="xp-level-prefix">Lvl <span id="combat-xp-bar-level">1</span></span>
+                        <div id="combat-xp-bar-container" class="xp-bar combat-xp-bar">
+                            <div id="combat-xp-bar-fill" class="xp-bar-fill"></div>
+                            <span id="combat-xp-bar-text" class="xp-bar-text">XP: 0/0</span>
+                        </div>
+                    </div>
+                    </div>
 
-                 <div id="combat-log" class="combat-log-area">
-                     </div>
-             </footer>
+                <div id="player-skill-bar" class="player-skill-bar-container">
+                    </div>
+
+                <div id="combat-log" class="combat-log-area">
+                    </div>
+            </footer>
         </div>
         <div id="item-tooltip" class="item-tooltip hidden"></div>
         <div id="item-context-menu" class="context-menu hidden">
