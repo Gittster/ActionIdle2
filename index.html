@@ -92,7 +92,38 @@
                          <button id="enter-zone-button" class="action-button launch-button" disabled>Enter Zone</button>
                      </div>
                  </div>
-                 <div id="vendor-panel" class="town-panel hidden"> <h3 class="panel-title">Trade Kiosk</h3> <p>Vendor interface will go here...</p> </div>
+                 <div id="vendor-panel" class="town-panel hidden">
+                    <h3 class="panel-title" id="vendor-panel-title">Trade Kiosk</h3>
+                    <div id="vendor-error" class="error-message" style="margin-bottom: 1rem;"></div> <div class="vendor-container">
+    
+                        <div class="vendor-stock-area">
+                            <h4 id="vendor-name">Vendor Stock</h4>
+                            <div id="vendor-stock-grid" class="vendor-grid inventory-grid">
+                                <p class="placeholder-text">Vendor inventory will appear here.</p>
+                            </div>
+                            <div class="vendor-action-info">
+                                 <p>Select vendor item to buy (Not Implemented).</p>
+                            </div>
+                        </div>
+    
+                        <div class="player-sell-area">
+                            <h4>Your Inventory (<span id="sell-mode-indicator">Click Item to Select</span>)</h4>
+                            <div class="player-currency-display">
+                                Credits: <span id="vendor-player-currency">0</span>
+                            </div>
+                            <div class="player-sell-controls">
+                                <button id="toggle-sell-mode-button" class="secondary-button small-button">Enable Sell Mode</button>
+                                <button id="sell-selected-button" class="action-button sell-button small-button" disabled>Sell Selected (0)</button>
+                            </div>
+                            <div id="vendor-player-inventory-grid" class="inventory-grid vendor-grid">
+                                 <p class="placeholder-text">Your items appear here.</p>
+                            </div>
+                             <div class="player-action-info">
+                                 <p>Only items with a sell value can be sold.</p>
+                            </div>
+                        </div>
+    
+                    </div> </div>
                  <div id="crafting-panel" class="town-panel hidden"> <h3 class="panel-title">Fabricator</h3> <p>Crafting interface will go here...</p> </div>
              </main>
         </div>
@@ -140,7 +171,8 @@
              </footer>
         </div>
         <div id="item-tooltip" class="item-tooltip hidden"></div>
-
+        <div id="item-context-menu" class="context-menu hidden">
+        </div>
     </div> <script type="module" src="script.js"></script>
 
 </body>

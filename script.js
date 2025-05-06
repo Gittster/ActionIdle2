@@ -74,20 +74,29 @@ let currentZoneLoot = []; // Array to hold loot drops { type: 'credits'/'item', 
 
 // --- Item/Attack/Enemy/Zone Definitions ---
 const ITEM_DEFINITIONS = {
-    'starter_mace': { id: 'starter_mace', name: 'Scrap Metal Cudgel', type: 'OneHandMace', slot: ['weapon1', 'weapon2'], rarity: 'common', baseStats: { 'physicalDamageMin': 5, 'physicalDamageMax': 8, 'attackSpeed': 1.2, 'critChance': 5.0, 'addedPhysicalDamage': 2 } },
-    'worn_leather_cap': { id: 'worn_leather_cap', name: 'Worn Leather Cap', type: 'Helmet', slot: ['head'], rarity: 'uncommon', baseStats: { 'defense': 5, 'percentIncreasedPhysicalDamage': 0.05 } },
-    'reinforced_chestplate': { id: 'reinforced_chestplate', name: 'Reinforced Chestplate', type: 'ChestArmor', slot: ['chest'], rarity: 'uncommon', baseStats: { 'defense': 15, 'addedPhysicalDamage': 3 } },
-    'basic_gloves': { id: 'basic_gloves', name: 'Basic Gloves', type: 'Gloves', slot: ['hands'], rarity: 'common', baseStats: { 'defense': 2, 'percentIncreasedAttackSpeed': 0.08 } }, // Assuming 'hands' slot
-    'iron_ring': { id: 'iron_ring', name: 'Iron Ring', type: 'Ring', slot: ['accessory1', 'accessory2'], rarity: 'uncommon', baseStats: { 'addedPhysicalDamage': 1 } },
-    // -- New Items for Loot Tables --
-    'scrap_metal': { id: 'scrap_metal', name: 'Scrap Metal', type: 'Component', rarity: 'common', stackable: true, maxStack: 50 }, // Example stackable component
-    'basic_wiring': { id: 'basic_wiring', name: 'Basic Wiring', type: 'Component', rarity: 'common', stackable: true, maxStack: 50 },
-    'ammo_clip_standard': { id: 'ammo_clip_standard', name: 'Std. Ammo Clip', type: 'Consumable', rarity: 'common', stackable: true, maxStack: 20 },
-    'commander_targeting_module': { id: 'commander_targeting_module', name: 'Commander Targeting Module', type: 'Accessory', slot: ['accessory1', 'accessory2'], rarity: 'rare', baseStats: { 'critChance': 3.0, 'percentIncreasedPhysicalDamage': 0.08 } }, // Example boss drop
-    'advanced_power_core': { id: 'advanced_power_core', name: 'Advanced Power Core', type: 'Component', rarity: 'epic', stackable: false } // Example epic component
-    // Add more items...
-};
+    // Existing items with sellValue added
+    'starter_mace': { id: 'starter_mace', name: 'Scrap Metal Cudgel', type: 'OneHandMace', slot: ['weapon1', 'weapon2'], rarity: 'common', baseStats: { 'physicalDamageMin': 5, 'physicalDamageMax': 8, 'attackSpeed': 1.2, 'critChance': 5.0, 'addedPhysicalDamage': 2 }, sellValue: 10 },
+    'worn_leather_cap': { id: 'worn_leather_cap', name: 'Worn Leather Cap', type: 'Helmet', slot: ['head'], rarity: 'uncommon', baseStats: { 'defense': 5, 'percentIncreasedPhysicalDamage': 0.05 }, sellValue: 15 },
+    'reinforced_chestplate': { id: 'reinforced_chestplate', name: 'Reinforced Chestplate', type: 'ChestArmor', slot: ['chest'], rarity: 'uncommon', baseStats: { 'defense': 15, 'addedPhysicalDamage': 3 }, sellValue: 25 },
+    'basic_gloves': { id: 'basic_gloves', name: 'Basic Gloves', type: 'Gloves', slot: ['hands'], rarity: 'common', baseStats: { 'defense': 2, 'percentIncreasedAttackSpeed': 0.08 }, sellValue: 5 }, // Assuming 'hands' slot
+    'iron_ring': { id: 'iron_ring', name: 'Iron Ring', type: 'Ring', slot: ['accessory1', 'accessory2'], rarity: 'uncommon', baseStats: { 'addedPhysicalDamage': 1 }, sellValue: 12 },
 
+    // New Items with sellValue added
+    'scrap_metal': { id: 'scrap_metal', name: 'Scrap Metal', type: 'Component', rarity: 'common', stackable: true, maxStack: 50, sellValue: 1 }, // Components have value
+    'basic_wiring': { id: 'basic_wiring', name: 'Basic Wiring', type: 'Component', rarity: 'common', stackable: true, maxStack: 50, sellValue: 2 },
+    'ammo_clip_standard': { id: 'ammo_clip_standard', name: 'Std. Ammo Clip', type: 'Consumable', rarity: 'common', stackable: true, maxStack: 20, sellValue: 3 },
+    'commander_targeting_module': { id: 'commander_targeting_module', name: 'Commander Targeting Module', type: 'Accessory', slot: ['accessory1', 'accessory2'], rarity: 'rare', baseStats: { 'critChance': 3.0, 'percentIncreasedPhysicalDamage': 0.08 }, sellValue: 75 }, // Rare drop
+    'advanced_power_core': { id: 'advanced_power_core', name: 'Advanced Power Core', type: 'Component', rarity: 'epic', stackable: false, sellValue: 150 } // Epic drop
+    // Add more items with sellValue...
+};
+const VENDOR_DATA = {
+    'starhaven_kiosk': { // An ID for this specific vendor kiosk
+        name: "Starhaven Trade Kiosk",
+        // inventory: [ 'item_id_1', 'item_id_2' ] // We'll add items they SELL later
+    }
+    // Add more vendors here if needed
+};
+let currentVendorId = null;
 const LOOT_TABLES = {
     'drone_basic': {
         creditsChance: 0.75, creditsMin: 5, creditsMax: 20,
@@ -182,6 +191,8 @@ let selectedSlotElementForAssignment = null;
 let selectedZoneId = null;
 let currentEnemies = [];
 let gridState = [];
+let isSellModeActive = false;
+let itemsToSellIndices = []; // Stores ORIGINAL indices of items selected for sale from currentCharacterData.inventory
 
 
 // --- Combat State Variables ---
@@ -203,11 +214,212 @@ const PLAYER_STATS_PLACEHOLDER = {
 
 // Skill Bar State
 const skillBar = { slots: [ { id: 'skill-1', key: '1', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, { id: 'skill-2', key: '2', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, { id: 'skill-3', key: '3', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, { id: 'skill-4', key: '4', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, { id: 'skill-LMB', key: 'LMB', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, { id: 'skill-RMB', key: 'RMB', skillId: null, cooldownUntil: 0, cooldownStart: 0 }, ]};
+const contextMenu = document.getElementById('item-context-menu');
 
 // --- Helper Functions ---
 function clearLoginMessages() { if (loginFeedback) loginFeedback.textContent = ''; if (loginError) loginError.textContent = ''; }
 function clearErrors() { clearLoginMessages(); if (charSelectError) charSelectError.textContent = ''; if (charCreateError) charCreateError.textContent = ''; }
 function displayError(element, message) { if (element) element.textContent = message; console.warn("Msg:", message); }
+/**
+ * Populates and positions the custom context menu based on the clicked item.
+ * @param {object} itemInstance The item data instance.
+ * @param {'inventory' | 'equipment'} sourceType
+ * @param {number | string} sourceId Inventory index or equipment slot name.
+ * @param {number} clickX Click X coordinate.
+ * @param {number} clickY Click Y coordinate.
+ */
+function populateContextMenu(itemInstance, sourceType, sourceId, clickX, clickY) {
+    if (!contextMenu) return;
+    const ul = contextMenu.querySelector('ul') || contextMenu.appendChild(document.createElement('ul')); // Ensure ul exists
+    ul.innerHTML = ''; // Clear previous items
+
+    const options = []; // Array to hold { text: '...', action: () => {...} }
+
+    // --- Generate Options Based on Source ---
+    if (sourceType === 'equipment') {
+        // Option: Unequip
+        options.push({
+            text: "Unequip",
+            action: () => {
+                performUnequip(itemInstance, String(sourceId)); // sourceId is slotName
+            }
+        });
+    }
+    else if (sourceType === 'inventory') {
+        const itemDefinition = ITEM_DEFINITIONS[itemInstance.id];
+        if (itemDefinition?.slot) { // Check if item is equippable
+            itemDefinition.slot.forEach(compatibleSlotName => {
+                const currentlyEquippedItem = currentCharacterData.equipped[compatibleSlotName];
+
+                if (currentlyEquippedItem) {
+                    // Option: Swap with equipped item
+                    options.push({
+                        text: `Swap with ${currentlyEquippedItem.name} (${compatibleSlotName})`,
+                        action: () => {
+                            // performEquip handles the swap logic when target slot is occupied
+                            performEquip(itemInstance, Number(sourceId), compatibleSlotName); // sourceId is index
+                        }
+                    });
+                } else {
+                    // Option: Equip to empty slot
+                    options.push({
+                        text: `Equip to ${compatibleSlotName}`,
+                        action: () => {
+                            performEquip(itemInstance, Number(sourceId), compatibleSlotName); // sourceId is index
+                        }
+                    });
+                }
+            });
+        }
+         // TODO: Add other inventory actions later (Drop, Use, etc.)
+    }
+
+    // --- Build and Show Menu ---
+    if (options.length === 0) {
+        console.log("No valid context menu actions for this item.");
+        return; // Don't show empty menu
+    }
+
+    options.forEach(option => {
+        const li = document.createElement('li');
+        li.textContent = option.text;
+        li.addEventListener('click', () => {
+            option.action(); // Execute the action
+            hideContextMenu(); // Hide menu after action
+        });
+        ul.appendChild(li);
+    });
+
+    // Position Menu (adjust so it stays within viewport)
+    contextMenu.style.left = `${clickX}px`;
+    contextMenu.style.top = `${clickY}px`;
+    contextMenu.classList.remove('hidden');
+
+    // Check if menu goes off-screen and adjust
+    const menuRect = contextMenu.getBoundingClientRect();
+    if (menuRect.right > window.innerWidth) {
+        contextMenu.style.left = `${window.innerWidth - menuRect.width - 5}px`; // Move left
+    }
+    if (menuRect.bottom > window.innerHeight) {
+        contextMenu.style.top = `${window.innerHeight - menuRect.height - 5}px`; // Move up
+    }
+     if (menuRect.left < 0) contextMenu.style.left = '5px';
+     if (menuRect.top < 0) contextMenu.style.top = '5px';
+}
+
+// Add global listeners to hide the menu
+document.addEventListener('click', handleGlobalClickForMenu);
+document.addEventListener('keydown', handleEscapeKeyForMenu);
+
+/**
+ * Handles the right-click event on inventory or equipment slots.
+ * @param {MouseEvent} event The contextmenu event.
+ * @param {'inventory' | 'equipment'} sourceType Where the click originated.
+ * @param {number | string} sourceId The inventory index or equipment slot name.
+ */
+function handleContextMenu(event, sourceType, sourceId) {
+    event.preventDefault(); // Prevent default browser right-click menu
+    hideContextMenu(); // Hide any previous menu
+
+    if (!currentCharacterData) return;
+
+    console.log(`Context menu requested: Type=${sourceType}, ID=${sourceId}`);
+
+    let itemInstance = null;
+
+    // Retrieve the item instance based on source
+    try {
+        if (sourceType === 'inventory') {
+            const numericSourceId = Number(sourceId);
+            if (!isNaN(numericSourceId) && numericSourceId >= 0 && numericSourceId < currentCharacterData.inventory.length) {
+                itemInstance = currentCharacterData.inventory[numericSourceId];
+            }
+        } else if (sourceType === 'equipment') {
+            const stringSourceId = String(sourceId);
+            if (currentCharacterData.equipped[stringSourceId]) {
+                itemInstance = currentCharacterData.equipped[stringSourceId];
+            }
+        }
+    } catch (e) {
+         console.error("Error getting item for context menu:", e);
+    }
+
+
+    if (!itemInstance) {
+        console.log("No item found at source for context menu.");
+        return; // Don't show menu for empty slots
+    }
+
+    // Populate and show the menu
+    populateContextMenu(itemInstance, sourceType, sourceId, event.clientX, event.clientY);
+}
+/**
+ * Helper function to update the 'Sell Selected' button text (showing only credits)
+ * and its enabled/disabled state based on selected items and sell mode.
+ */
+/**
+ * Global click listener to hide context menu when clicking outside.
+ * @param {MouseEvent} event
+ */
+function handleGlobalClickForMenu(event) {
+    if (contextMenu && !contextMenu.classList.contains('hidden')) {
+        // Check if the click was outside the menu
+        if (!contextMenu.contains(event.target)) {
+            hideContextMenu();
+        }
+    }
+}
+function hideContextMenu() {
+    if (contextMenu) {
+        contextMenu.classList.add('hidden');
+        const ul = contextMenu.querySelector('ul');
+        if (ul) ul.innerHTML = ''; // Clear previous options
+    }
+}
+/**
+ * Global keydown listener to hide context menu on Escape key.
+ * @param {KeyboardEvent} event
+ */
+function handleEscapeKeyForMenu(event) {
+    if (event.key === 'Escape' && contextMenu && !contextMenu.classList.contains('hidden')) {
+        hideContextMenu();
+    }
+}
+function updateSellButtonState() {
+    const sellButton = document.getElementById('sell-selected-button');
+    if (!sellButton || !currentCharacterData) return; // Exit if button or data is missing
+
+    let totalValue = 0;
+    const itemCount = itemsToSellIndices.length; // Still need the count to determine if button should be enabled
+
+    // Calculate total sell value of selected items
+    itemsToSellIndices.forEach(index => {
+        // Make sure the index is valid before accessing the inventory item
+        if (index >= 0 && index < currentCharacterData.inventory.length) {
+            const item = currentCharacterData.inventory[index];
+            if (item && item.sellValue) {
+                totalValue += item.sellValue;
+            }
+        } else {
+            console.warn(`Invalid index (${index}) found in itemsToSellIndices during sell button update.`);
+        }
+    });
+
+    // --- Update Button Text ---
+    // Only show the total credit value
+    sellButton.textContent = `Sell Selected (${totalValue} Cr)`;
+    // --------------------------
+
+    // Disable button if no items are selected OR if sell mode is not active
+    sellButton.disabled = itemCount === 0 || !isSellModeActive;
+
+    // Add/remove visual cue class based on selection and mode
+    if (itemCount > 0 && isSellModeActive) {
+         sellButton.classList.add('has-items-selected');
+    } else {
+         sellButton.classList.remove('has-items-selected');
+    }
+}
 
 function showScreen(screenId) {
     [loginScreen, charSelectScreen, charCreateScreen, townScreen, combatScreen].forEach(s => s?.classList.add('hidden'));
@@ -352,73 +564,324 @@ function handleEnemyDeath(enemyData) {
  * Renders the currentZoneLoot into the right placeholder card UI.
  */
 // Modify displayLoot
+function performEquip(itemToEquipInstance, sourceInventoryIndex, targetSlotName) {
+    // Ensure we use a deep copy to avoid modification issues if it came from equip slot later
+    const itemToEquip = JSON.parse(JSON.stringify(itemToEquipInstance));
 
+    console.log(`ACTION: Equip ${itemToEquip.name} from Inv[${sourceInventoryIndex}] to Equip[${targetSlotName}]`);
+
+    // --- Validation ---
+    const itemDefinition = ITEM_DEFINITIONS[itemToEquip.id];
+    if (!itemDefinition?.slot?.includes(targetSlotName)) {
+        console.warn(`Equip failed: Compatibility check. ${itemToEquip.name} -> ${targetSlotName}`);
+        displayPanelError('inventory-panel', "Cannot equip this item in that slot."); // Show UI error
+        return;
+    }
+    // TODO: Other checks (level, stats)
+
+    // --- Logic ---
+    const itemCurrentlyEquipped = currentCharacterData.equipped[targetSlotName] || null;
+    let canProceed = true;
+    let itemRemovedFromInventory = null;
+
+    // 1. Handle removing item from inventory source slot
+    const sourceInvItem = currentCharacterData.inventory[sourceInventoryIndex];
+     if(!sourceInvItem || sourceInvItem.id !== itemToEquip.id){
+        console.error("Equip Error: Source inventory item mismatch!");
+        displayPanelError('inventory-panel', "Error processing equip source.");
+        return;
+     }
+     if(sourceInvItem.quantity > 1) {
+        sourceInvItem.quantity--;
+        itemRemovedFromInventory = {...itemToEquip, quantity: 1}; // Equip one
+        console.log(` -> Decremented stack for ${itemToEquip.name} in inventory.`);
+     } else {
+         itemRemovedFromInventory = currentCharacterData.inventory.splice(sourceInventoryIndex, 1)[0];
+         console.log(` -> Removed ${itemToEquip.name} from inventory index ${sourceInventoryIndex}.`);
+     }
+     if (!itemRemovedFromInventory) {
+        console.error("Equip Error: Failed to correctly remove item from inventory logic.");
+        // Attempt to restore quantity if reduced incorrectly
+         if(sourceInvItem && itemToEquip.quantity > 0) sourceInvItem.quantity++;
+         displayPanelError('inventory-panel', "Internal error during equip.");
+        return;
+     }
+
+
+    // 2. Handle item currently in target slot (move to inventory)
+    if (itemCurrentlyEquipped) {
+        console.log(` -> Slot occupied by ${itemCurrentlyEquipped.name}. Moving to inventory.`);
+        const inventorySize = currentCharacterData.inventorySize || 60;
+        let successfullyMovedToInv = false;
+
+        // Check space first (inventory has one less item now)
+        if (currentCharacterData.inventory.length < inventorySize) {
+            // Try to stack it first
+            if (itemCurrentlyEquipped.stackable) {
+                const maxStack = ITEM_DEFINITIONS[itemCurrentlyEquipped.id]?.maxStack || 50;
+                for(let i=0; i < currentCharacterData.inventory.length; i++){
+                     const invItem = currentCharacterData.inventory[i];
+                     if(invItem && invItem.id === itemCurrentlyEquipped.id && (invItem.quantity || 0) < maxStack){
+                         invItem.quantity = (invItem.quantity || 0) + 1;
+                         successfullyMovedToInv = true;
+                         console.log(` -> Stacked ${itemCurrentlyEquipped.name} back into inventory.`);
+                         break;
+                     }
+                }
+            }
+            // If not stacked, add as new item
+            if(!successfullyMovedToInv) {
+                 // Ensure quantity is 1 when coming from equip slot
+                 itemCurrentlyEquipped.quantity = 1;
+                 currentCharacterData.inventory.push(itemCurrentlyEquipped);
+                 successfullyMovedToInv = true;
+                 console.log(` -> Added ${itemCurrentlyEquipped.name} as new item to inventory.`);
+            }
+            if (!successfullyMovedToInv) { // Should be unreachable if length check is correct
+                 console.error("Equip Error: Failed to move equipped item to inventory even with space.");
+                 canProceed = false;
+                 // Rollback: Put itemRemovedFromInventory back to original slot/stack
+                 if (itemRemovedFromInventory.quantity === 1 && itemToEquip.quantity > 0) {
+                     sourceInvItem.quantity++; // Increment stack back
+                 } else {
+                     currentCharacterData.inventory.splice(sourceInventoryIndex, 0, itemRemovedFromInventory); // Insert back
+                 }
+            }
+        } else { // Inventory full
+            console.warn(`Equip failed: Inventory full. Cannot unequip ${itemCurrentlyEquipped.name}.`);
+            canProceed = false;
+             // Rollback: Put itemRemovedFromInventory back
+             if (itemRemovedFromInventory.quantity === 1 && itemToEquip.quantity > 0) {
+                 sourceInvItem.quantity++;
+             } else {
+                 currentCharacterData.inventory.splice(sourceInventoryIndex, 0, itemRemovedFromInventory);
+             }
+             displayPanelError('inventory-panel', `Inventory full! Cannot unequip ${itemCurrentlyEquipped.name}.`);
+        }
+    }
+
+    // 3. Place new item in target slot if possible
+    if (canProceed) {
+        currentCharacterData.equipped[targetSlotName] = itemRemovedFromInventory;
+        console.log(` -> Successfully equipped ${itemToEquip.name} to ${targetSlotName}.`);
+        saveEquipmentAndInventory(); // Save changes
+    } else {
+         console.log("Equip operation could not proceed or was rolled back.");
+    }
+
+    // --- Refresh UI ---
+    // REMOVED setTimeout wrapper
+    console.log(`Calling displayInventoryPanel directly inside performEquip`);
+    displayInventoryPanel();
+    // ------------------
+}
+function performUnequip(itemToUnequipInstance, sourceSlotName) {
+    // Use a deep copy
+    const itemToUnequip = JSON.parse(JSON.stringify(itemToUnequipInstance));
+
+   console.log(`ACTION: Unequip ${itemToUnequip.name} from Equip[${sourceSlotName}] to Inventory`);
+
+   // --- Validation & Logic ---
+   const inventorySize = currentCharacterData.inventorySize || 60;
+   let canProceed = false;
+   let targetInventoryIndex = -1; // Track if stacking
+
+    // Check for stack
+    if (itemToUnequip.stackable) {
+        const maxStack = ITEM_DEFINITIONS[itemToUnequip.id]?.maxStack || 50;
+        for(let i = 0; i < currentCharacterData.inventory.length; i++){
+           const invItem = currentCharacterData.inventory[i];
+           if(invItem && invItem.id === itemToUnequip.id && (invItem.quantity || 0) < maxStack) {
+               canProceed = true;
+               targetInventoryIndex = i;
+               break;
+           }
+        }
+    }
+    // Check for empty slot if not stacking
+    if (!canProceed && currentCharacterData.inventory.length < inventorySize) {
+        canProceed = true;
+    }
+
+   // --- Perform Action ---
+   if (canProceed) {
+       // Remove from equipped
+       delete currentCharacterData.equipped[sourceSlotName];
+       console.log(` -> Removed ${itemToUnequip.name} from ${sourceSlotName}.`);
+
+       // Add to inventory (stack or new)
+       if (targetInventoryIndex !== -1) {
+           currentCharacterData.inventory[targetInventoryIndex].quantity = (currentCharacterData.inventory[targetInventoryIndex].quantity || 0) + 1;
+           console.log(` -> Stacked ${itemToUnequip.name}. New quantity: ${currentCharacterData.inventory[targetInventoryIndex].quantity}`);
+       } else {
+           itemToUnequip.quantity = 1; // Ensure quantity 1
+           currentCharacterData.inventory.push(itemToUnequip);
+           console.log(` -> Added ${itemToUnequip.name} to inventory.`);
+       }
+       saveEquipmentAndInventory(); // Save changes
+   } else {
+        console.warn(`Unequip failed: Inventory full.`);
+        displayPanelError('inventory-panel', "Inventory full! Cannot unequip item.");
+   }
+
+    // --- Refresh UI ---
+    // REMOVED setTimeout wrapper
+    console.log(`Calling displayInventoryPanel directly inside performUnequip`);
+    displayInventoryPanel();
+    // ------------------
+}
+function performSwap(itemBeingDraggedInstance, sourceSlotName, targetSlotName) {
+    // Use deep copies
+    const draggedItemData = JSON.parse(JSON.stringify(itemBeingDraggedInstance));
+
+     console.log(`ACTION: Swap ${draggedItemData.name} from Equip[${sourceSlotName}] with item in Equip[${targetSlotName}]`);
+
+    const itemInTargetSlot = currentCharacterData.equipped[targetSlotName] ? JSON.parse(JSON.stringify(currentCharacterData.equipped[targetSlotName])) : null;
+
+    // --- Validation ---
+     const draggedItemDef = ITEM_DEFINITIONS[draggedItemData.id];
+     if (!draggedItemDef?.slot?.includes(targetSlotName)) {
+         console.warn(`Swap Failed: ${draggedItemData.name} cannot go into ${targetSlotName}.`);
+          displayPanelError('inventory-panel', `${draggedItemData.name} cannot go into ${targetSlotName}.`);
+         return;
+     }
+     if (itemInTargetSlot) {
+        const targetItemDef = ITEM_DEFINITIONS[itemInTargetSlot.id];
+        if (!targetItemDef?.slot?.includes(sourceSlotName)) {
+             console.warn(`Swap Failed: ${itemInTargetSlot.name} cannot go into ${sourceSlotName}.`);
+             displayPanelError('inventory-panel', `${itemInTargetSlot.name} cannot go into ${sourceSlotName}.`);
+             return;
+        }
+     }
+     // TODO: Other checks (2H weapon conflicts?)
+
+     // --- Perform Swap ---
+     console.log(` -> Swapping ${draggedItemData.name} with ${itemInTargetSlot ? itemInTargetSlot.name : 'Empty Slot'}.`);
+     currentCharacterData.equipped[targetSlotName] = draggedItemData; // Item from source goes to target
+     if(itemInTargetSlot) {
+        currentCharacterData.equipped[sourceSlotName] = itemInTargetSlot; // Item from target goes to source
+     } else {
+         delete currentCharacterData.equipped[sourceSlotName]; // Source slot becomes empty
+     }
+
+      saveEquipmentAndInventory(); // Save changes
+
+      // --- Refresh UI ---
+      // REMOVED setTimeout wrapper
+      console.log(`Calling displayInventoryPanel directly inside performSwap`);
+      displayInventoryPanel();
+      // ------------------
+}
+function displayPanelError(panelId, message) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    // Use a consistent class for panel-specific errors
+    let errorDiv = panel.querySelector('.panel-error-display');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        // Use base error message styles + a specific class for targeting
+        errorDiv.className = 'error-message panel-error-display';
+        errorDiv.style.marginBottom = '1rem'; // Add some space below
+        // Insert after the panel title if possible
+        const title = panel.querySelector('.panel-title');
+        if (title) {
+            title.parentNode.insertBefore(errorDiv, title.nextSibling);
+        } else {
+            panel.prepend(errorDiv); // Otherwise prepend to panel
+        }
+    }
+    errorDiv.textContent = message;
+    console.warn(`Panel Error (${panelId}): ${message}`); // Also log it
+
+    // Optional: Auto-clear the message after a while
+    // setTimeout(() => { if(errorDiv) errorDiv.textContent = ''; }, 7000);
+}
 function displayLoot() {
     console.log(`--- displayLoot CALLED. Items/Credits: ${currentZoneLoot.filter(Boolean).length} ---`);
     const lootContainer = document.getElementById('right-placeholder-card');
     if (!lootContainer) return;
 
-    lootContainer.innerHTML = '';
-    lootContainer.style.alignItems = 'flex-start'; lootContainer.style.justifyContent = 'flex-start'; lootContainer.style.padding = '0.5rem';
+    lootContainer.innerHTML = ''; // Clear previous
+    lootContainer.style.alignItems = 'flex-start';
+    lootContainer.style.justifyContent = 'flex-start';
+    lootContainer.style.padding = '0.5rem';
 
-    const actualLootEntries = currentZoneLoot.filter(Boolean); // Filter out null (picked up) entries
+    const actualLootEntries = currentZoneLoot.filter(Boolean);
 
     if (actualLootEntries.length === 0) {
         lootContainer.innerHTML = '<p>Loot / Map Area</p>'; // Restore placeholder
-        lootContainer.style.alignItems = 'center'; lootContainer.style.justifyContent = 'center';
+        lootContainer.style.alignItems = 'center';
+        lootContainer.style.justifyContent = 'center';
         return;
     }
 
     const lootList = document.createElement('ul');
     lootList.id = 'loot-list';
-    lootList.style.cssText = 'list-style:none; padding:0; margin:0; width:100%;';
+    lootList.style.cssText = 'list-style:none; padding:0; margin:0; width:100%; display: flex; flex-direction: column; gap: 0.3rem;'; // Added flex gap
 
-    // --- Display All Loot Entries (Items and Credits) ---
     currentZoneLoot.forEach((loot, index) => {
-        if (!loot) return; // Skip already picked up items
+        if (!loot) return; // Skip already picked up
 
         const listItem = document.createElement('li');
-        listItem.className = 'loot-item'; // Use common class for styling/events
+        listItem.className = 'loot-item';
         listItem.style.cssText = `
-            padding: 0.3rem 0.5rem; margin-bottom: 0.3rem; border-radius: 4px;
+            padding: 0.3rem 0.5rem; border-radius: 4px;
             cursor: pointer; background-color: rgba(50, 60, 75, 0.7);
             font-size: 0.8rem; border: 1px solid #4b5563;
-        `; // Base style, clickable
+            transition: background-color 0.2s, border-color 0.2s;
+        `;
+        listItem.dataset.lootIndex = index;
 
-        listItem.dataset.lootIndex = index; // Store index for identification
+        // --- Clear potential old listeners ---
+        listItem.removeEventListener('click', handleCreditLootClick);
+        listItem.removeEventListener('click', handleLootItemClick);
+        listItem.removeEventListener('mouseover', handleLootItemMouseOver);
+        listItem.removeEventListener('mouseout', handleLootItemMouseOut);
+        listItem.removeEventListener('mousemove', handleLootItemMouseMove);
+        // ------------------------------------
+
 
         if (loot.type === 'credits') {
             listItem.textContent = `${loot.amount} Credits`;
-            listItem.style.color = '#facc15'; // Gold color
+            listItem.style.color = '#facc15';
             listItem.style.fontWeight = 'bold';
-            // Add listener specific to credits
-            listItem.removeEventListener('click', handleCreditLootClick); // Prevent duplicates
             listItem.addEventListener('click', handleCreditLootClick);
-            // No tooltip listeners for credits
+            // No tooltip needed for credits
         }
         else if (loot.type === 'item' && loot.itemData) {
             const item = loot.itemData;
             listItem.dataset.itemData = JSON.stringify(item); // Store data for tooltip
             listItem.textContent = item.name || 'Unknown Item';
-            // Style based on rarity
-            switch (item.rarity?.toLowerCase()) { /* ... rarity colors ... */
+
+            // Style based on rarity (Added specific dataset attributes for easier CSS styling)
+            const rarity = item.rarity?.toLowerCase() || 'common';
+            listItem.dataset.rarity = rarity; // Store rarity for CSS
+            switch (rarity) {
                 case 'uncommon': listItem.style.color = '#63a4ff'; listItem.style.borderColor = '#63a4ff'; break;
                 case 'rare': listItem.style.color = '#bf85ff'; listItem.style.borderColor = '#bf85ff'; break;
                 case 'epic': listItem.style.color = '#ffa500'; listItem.style.borderColor = '#ffa500'; break;
                 case 'legendary': listItem.style.color = '#ff4500'; listItem.style.borderColor = '#ff4500'; break;
                 default: listItem.style.color = '#e5e7eb'; break;
             }
+
             // Add listener specific to items (pickup)
-            listItem.removeEventListener('click', handleLootItemClick);
             listItem.addEventListener('click', handleLootItemClick);
-            // Add tooltip listeners
-            listItem.removeEventListener('mouseover', handleLootItemMouseOver);
+
+            // --- Add tooltip listeners ---
             listItem.addEventListener('mouseover', handleLootItemMouseOver);
-            listItem.removeEventListener('mouseout', handleLootItemMouseOut);
-            listItem.addEventListener('mouseout', handleLootItemMouseOut);
-            listItem.removeEventListener('mousemove', handleLootItemMouseMove);
+            listItem.addEventListener('mouseout', handleLootItemMouseOut); // *** ENSURE THIS IS ADDED ***
             listItem.addEventListener('mousemove', handleLootItemMouseMove);
+            // ---------------------------
+        } else {
+             // Handle potential malformed loot entries
+             listItem.textContent = "Invalid Loot Entry";
+             listItem.style.color = 'red';
+             listItem.style.cursor = 'default';
         }
+
+        listItem.addEventListener('mouseover', () => listItem.style.backgroundColor = 'rgba(75, 85, 99, 0.8)'); // Hover effect
+        listItem.addEventListener('mouseout', () => listItem.style.backgroundColor = 'rgba(50, 60, 75, 0.7)'); // Remove hover effect
+
 
         lootList.appendChild(listItem);
     });
@@ -433,6 +896,13 @@ function displayLoot() {
  * @param {Event} event
  */
 async function handleCreditLootClick(event) {
+    // ---> HIDE TOOLTIP FIRST <---
+    // (Even though credits don't show a tooltip, this is good practice
+    // in case logic changes or to prevent edge cases if the mouse quickly
+    // moved from an item to credits before clicking)
+    hideTooltip();
+    // --------------------------
+
     const listItem = event.currentTarget;
     const index = parseInt(listItem.dataset.lootIndex, 10);
 
@@ -444,7 +914,6 @@ async function handleCreditLootClick(event) {
         addCombatLogMessage("Cannot pickup credits: Character data missing.");
         return;
     }
-
 
     const lootEntry = currentZoneLoot[index];
     const creditsCollected = lootEntry.amount;
@@ -460,9 +929,8 @@ async function handleCreditLootClick(event) {
     currentZoneLoot[index] = null; // Remove from loot pool
 
     // --- Update UI ---
-    displayLoot(); // Re-render loot list (removes the credit line)
+    displayLoot(); // Re-render loot list AFTER hiding tooltip and updating data
     if (townCurrency) townCurrency.textContent = newCurrency; // Update town display if visible
-    // updateResourceDisplay(); // Not needed unless currency affects bars
     addCombatLogMessage(`Collected ${creditsCollected} Credits.`);
     // -------------------
 
@@ -476,14 +944,15 @@ async function handleCreditLootClick(event) {
     } catch (error) {
         console.error("Failed to save currency update:", error);
         addCombatLogMessage("Error saving currency!");
-        // Rollback? Put credits back?
+        // --- Rollback Logic ---
         currentZoneLoot[index] = lootEntry; // Put back if save failed
         currentCharacterData.currency = currentCurrency; // Revert local data
         displayLoot(); // Re-display credits if rolled back
+        if (townCurrency) townCurrency.textContent = currentCharacterData.currency; // Revert town display too
+        // ---------------------
     }
     // ---------------------------------------
 }
-// END OF NEW FUNCTION BLOCK
 /**
  * Handles clicking on a loot item in the list.
  * @param {Event} event
@@ -500,68 +969,120 @@ function handleLootItemClick(event) {
 // NEW FUNCTION BLOCK
 
 /**
- * Attempts to add a loot item to the player's inventory.
+ * Attempts to add a loot item to the player's inventory, handling stacking.
  * @param {number} lootIndex - The index of the item in the currentZoneLoot array.
  */
 async function pickupLootItem(lootIndex) {
+    hideTooltip(); // Hide tooltip before processing
+
     if (!currentCharacterData || !auth.currentUser) {
         addCombatLogMessage("Cannot pickup loot: Character data missing.");
         return;
     }
 
     const lootEntry = currentZoneLoot[lootIndex];
+    // Ensure loot entry and item data exist
     if (!lootEntry || lootEntry.type !== 'item' || !lootEntry.itemData) {
-        console.warn("Invalid loot entry selected:", lootIndex, lootEntry);
+        console.warn("Invalid loot entry selected for pickup:", lootIndex, lootEntry);
         return;
     }
 
-    const itemData = lootEntry.itemData;
-    console.log("Attempting to pickup:", itemData.name);
+    // Use a copy of the base item data from the loot entry
+    const itemBaseData = { ...lootEntry.itemData };
+    console.log(`Attempting to pickup: ${itemBaseData.name}, Stackable: ${itemBaseData.stackable}`);
 
-    // --- Inventory Check ---
     // Initialize inventory if it doesn't exist
     if (!Array.isArray(currentCharacterData.inventory)) {
         currentCharacterData.inventory = [];
     }
     const inventorySize = currentCharacterData.inventorySize || 60; // Default size
-    if (currentCharacterData.inventory.length >= inventorySize) {
-        addCombatLogMessage("Inventory full!");
-        // Optional: Add visual feedback on loot item?
-        return;
+
+    let itemSuccessfullyProcessed = false; // Flag to check if item was stacked or added
+
+    // --- Logic for STACKABLE items ---
+    if (itemBaseData.stackable) {
+        let existingStackFound = false;
+        const maxStack = itemBaseData.maxStack || 50; // Use definition's maxStack, default 50
+
+        // Iterate through existing inventory to find a stack with space
+        for (let i = 0; i < currentCharacterData.inventory.length; i++) {
+            const existingItem = currentCharacterData.inventory[i];
+            // Check if it's the same item ID and has room
+            if (existingItem && existingItem.id === itemBaseData.id && (existingItem.quantity || 0) < maxStack) {
+                existingItem.quantity = (existingItem.quantity || 0) + 1; // Increment quantity
+                existingStackFound = true;
+                itemSuccessfullyProcessed = true; // Mark as processed
+                console.log(`Stacked ${itemBaseData.name}. New quantity: ${existingItem.quantity}`);
+                addCombatLogMessage(`Picked up: ${itemBaseData.name} (Stacked)`);
+                break; // Important: Stop after adding to the first available stack
+            }
+        }
+
+        // If no existing stack was found or updated, try adding a NEW stack
+        if (!existingStackFound) {
+            if (currentCharacterData.inventory.length < inventorySize) {
+                // Create a new inventory item instance with quantity 1
+                const newItemInstance = { ...itemBaseData, quantity: 1 };
+                currentCharacterData.inventory.push(newItemInstance);
+                itemSuccessfullyProcessed = true; // Mark as processed
+                console.log(`Added new stack of ${itemBaseData.name}.`);
+                addCombatLogMessage(`Picked up: ${itemBaseData.name} (New Stack)`);
+            } else {
+                // Inventory is full, cannot add a new stack
+                addCombatLogMessage(`Inventory full! Cannot add new stack of ${itemBaseData.name}.`);
+                // Do not proceed further, leave loot on ground
+                return; // Exit the function
+            }
+        }
     }
-    // --------------------
-
-    // --- Add to Inventory ---
-    // For now, directly add the item object. Could add quantity logic for stackables later.
-    currentCharacterData.inventory.push(itemData);
-    console.log("Item added to local inventory:", currentCharacterData.inventory);
-
-    // --- Mark loot as picked up ---
-    currentZoneLoot[lootIndex] = null; // Remove from loot pool by setting to null
-
-    // --- Update UI ---
-    displayLoot(); // Re-render loot list to remove the item
-    addCombatLogMessage(`Picked up: ${itemData.name}`);
-    // If inventory panel is open in town, update it? (Not applicable here)
-
-    // --- Save Updated Inventory to Firestore ---
-    try {
-        const charRef = doc(db, "characters", currentCharacterData.id);
-        await updateDoc(charRef, {
-            inventory: currentCharacterData.inventory // Save the entire updated array
-        });
-        console.log("Inventory saved to Firestore.");
-    } catch (error) {
-        console.error("Failed to save inventory update:", error);
-        addCombatLogMessage("Error saving inventory!");
-        // TODO: Potential rollback? Add item back to loot list?
-        // For simplicity now, we leave it picked up locally but show error.
-        currentZoneLoot[lootIndex] = lootEntry; // Put back if save failed? Or mark as unsaved?
-        displayLoot(); // Re-render to show it again if rolled back
+    // --- Logic for NON-STACKABLE items ---
+    else {
+        if (currentCharacterData.inventory.length < inventorySize) {
+             // Add the item with quantity 1 for consistency
+            currentCharacterData.inventory.push({ ...itemBaseData, quantity: 1 });
+            itemSuccessfullyProcessed = true; // Mark as processed
+            console.log(`Added non-stackable item: ${itemBaseData.name}`);
+            addCombatLogMessage(`Picked up: ${itemBaseData.name}`);
+        } else {
+            // Inventory is full
+            addCombatLogMessage(`Inventory full! Cannot pickup ${itemBaseData.name}.`);
+             // Do not proceed further, leave loot on ground
+            return; // Exit the function
+        }
     }
-    // ---------------------------------------
+
+    // --- Proceed only if item was successfully added or stacked ---
+    if (itemSuccessfullyProcessed) {
+        // Mark loot as picked up from the ground
+        currentZoneLoot[lootIndex] = null;
+
+        // Update the loot list UI (remove the picked-up item)
+        displayLoot();
+
+        // --- Save Updated Inventory to Firestore ---
+        try {
+            const charRef = doc(db, "characters", currentCharacterData.id);
+            // Save the entire inventory array, which now includes items with quantities
+            await updateDoc(charRef, {
+                inventory: currentCharacterData.inventory
+            });
+            console.log("Inventory saved to Firestore after pickup.");
+        } catch (error) {
+            console.error("Failed to save inventory update after pickup:", error);
+            addCombatLogMessage("Error saving inventory!");
+            // Implement rollback or notify user of potential desync
+            // Simple rollback attempt:
+            // currentZoneLoot[lootIndex] = lootEntry; // Put loot back visually (local only)
+            // displayLoot(); // Refresh loot display
+            // Reverting the inventory change locally is complex and might require a deep copy mechanism.
+            // For now, log the error and accept potential local/db difference.
+        }
+        // ---------------------------------------
+
+    }
+    // If item was not processed (e.g., inventory full), we returned earlier,
+    // so the loot remains visually on the ground and no save occurs.
 }
-// END OF NEW FUNCTION BLOCK
 
 function updateActionButtonsState() { const sel = selectedCharacterId !== null; if (launchCharButton) launchCharButton.disabled = !sel; if (deleteCharButton) deleteCharButton.disabled = !sel; }
 function resetSelectionState() { selectedCharacterId = null; selectedCharacterName = null; if (selectedCharacterElement) { selectedCharacterElement.classList.remove('selected-char'); selectedCharacterElement = null; } if (deleteConfirmDialog) deleteConfirmDialog.classList.add('hidden'); mapPanel?.querySelectorAll('.map-node.selected').forEach(node => node.classList.remove('selected')); updateActionButtonsState(); }
@@ -703,7 +1224,169 @@ async function launchGame(characterId) {
 // --- Town Screen Logic ---
 function activateTownPanel(panelId) { townNav.querySelector('.town-nav-button.active')?.classList.remove('active'); if (townMainContent) { townMainContent.querySelector('.town-panel.active')?.classList.add('hidden'); townMainContent.querySelector('.town-panel.active')?.classList.remove('active'); } else return; const newButton = townNav.querySelector(`.town-nav-button[data-panel="${panelId}"]`); const newPanel = document.getElementById(panelId); if (newButton) newButton.classList.add('active'); if (newPanel) { newPanel.classList.remove('hidden'); newPanel.classList.add('active'); switch (panelId) { case 'overview-panel': displayOverviewPanel(); break; case 'inventory-panel': displayInventoryPanel(); break; case 'missions-panel': displayMissionsPanel(); break; case 'station-panel': displayStationPanel(); break; case 'stats-panel': displayStatsPanel(); break; case 'skills-panel': displaySkillsPanel(); break; case 'map-panel': displayMapPanel(); break; case 'vendor-panel': displayVendorPanel(); break; case 'crafting-panel': displayCraftingPanel(); break; default: break; } } else { console.error("Panel not found:", panelId); } }
 function displayOverviewPanel() { if (!currentCharacterData) return; if (overviewCharName) overviewCharName.textContent = currentCharacterData.name || 'Traveler'; }
-function displayInventoryPanel() { if (!currentCharacterData) return; const slots = document.querySelectorAll('.equipment-slots .equip-slot'); slots.forEach(slotEl => { slotEl.removeEventListener('mouseover', handleSlotMouseOver); slotEl.removeEventListener('mouseout', handleSlotMouseOut); slotEl.removeEventListener('mousemove', handleSlotMouseMove); }); slots.forEach(slotEl => { const slotName = slotEl.dataset.slot; const item = currentCharacterData.equipped?.[slotName]; if (item && item.name) { slotEl.textContent = item.name; slotEl.style.color = '#e5e7eb'; slotEl.style.borderStyle = 'solid'; slotEl.style.borderColor = '#6b7280'; slotEl.removeAttribute('title'); slotEl.dataset.itemId = item.id; slotEl.addEventListener('mouseover', handleSlotMouseOver); slotEl.addEventListener('mouseout', handleSlotMouseOut); slotEl.addEventListener('mousemove', handleSlotMouseMove); } else { slotEl.textContent = slotName.charAt(0).toUpperCase() + slotName.slice(1); slotEl.style.color = '#6b7280'; slotEl.style.borderStyle = 'dashed'; slotEl.style.borderColor = '#4b5563'; slotEl.removeAttribute('title'); delete slotEl.dataset.itemId; } }); if (inventoryGrid) { inventoryGrid.innerHTML = ''; const size = currentCharacterData.inventorySize || 60; const items = currentCharacterData.inventory || []; for (let i = 0; i < size; i++) { const item = items[i] || null; const slotEl = document.createElement('div'); slotEl.className = 'inv-slot'; slotEl.dataset.slotIndex = i; if (item && item.name) { slotEl.textContent = item.name.substring(0, 1); slotEl.title = item.name; } inventoryGrid.appendChild(slotEl); } } }
+/**
+ * Displays the Loadout/Inventory panel, enabling right-click context menus.
+ */
+/**
+ * Displays the Loadout/Inventory panel, enabling right-click context menus.
+ * (Cleaned up to remove D&D listener references)
+ */
+function displayInventoryPanel() {
+    console.log('--- displayInventoryPanel START ---');
+    if (!currentCharacterData) {
+        console.error('displayInventoryPanel Error: Character data MISSING!');
+        return;
+    }
+    console.log('Equipped state at render:', JSON.stringify(currentCharacterData.equipped));
+
+    const equipmentSlotsContainer = document.querySelector('.equipment-slots');
+    const inventoryGridEl = document.getElementById('inventory-grid');
+
+    const existingError = document.querySelector('#inventory-panel .error-display');
+    if (existingError) existingError.remove();
+
+    // --- Setup Equipment Slots ---
+    equipmentSlotsContainer?.querySelectorAll('.equip-slot').forEach(slotEl => {
+        const slotName = slotEl.dataset.slot;
+        if (!slotName) return;
+        const item = currentCharacterData.equipped?.[slotName] || null;
+
+        console.log(`Rendering equip slot '${slotName}', Item found:`, item ? item.name : 'null');
+
+        // --- Clean up previous state and listeners ---
+        const newSlotEl = slotEl.cloneNode(true); // Use cloneNode to easily remove all old listeners
+        slotEl.parentNode.replaceChild(newSlotEl, slotEl);
+        const currentSlotEl = equipmentSlotsContainer.querySelector(`.equip-slot[data-slot="${slotName}"]`); // Re-select
+
+        // Reset visual state explicitly
+        currentSlotEl.innerHTML = '';
+        currentSlotEl.removeAttribute('style');
+        currentSlotEl.removeAttribute('draggable'); // Remove draggable
+        currentSlotEl.className = 'equip-slot'; // Reset class
+        currentSlotEl.dataset.slot = slotName;
+        currentSlotEl.classList.remove('has-item', 'dragging', 'drag-over'); // Clean D&D classes just in case
+        // ------------------------------------------
+
+        if (item && item.name) {
+            // --- Item Equipped ---
+            currentSlotEl.textContent = item.name;
+            currentSlotEl.style.color = '#e5e7eb';
+            currentSlotEl.style.borderStyle = 'solid';
+            currentSlotEl.style.borderColor = '#6b7280';
+            currentSlotEl.dataset.itemId = item.id;
+            currentSlotEl.classList.add('has-item');
+
+            // Add Tooltip listeners
+            currentSlotEl.addEventListener('mouseover', handleSlotMouseOver);
+            currentSlotEl.addEventListener('mouseout', handleSlotMouseOut);
+            currentSlotEl.addEventListener('mousemove', handleSlotMouseMove);
+            // Add Context Menu Listener
+            currentSlotEl.addEventListener('contextmenu', (e) => handleContextMenu(e, 'equipment', slotName));
+        } else {
+            // --- Slot Empty ---
+            currentSlotEl.textContent = slotName.charAt(0).toUpperCase() + slotName.slice(1);
+            currentSlotEl.style.color = '#6b7280';
+            currentSlotEl.style.borderStyle = 'dashed';
+            currentSlotEl.style.borderColor = '#4b5563';
+            delete currentSlotEl.dataset.itemId;
+        }
+        // No D&D listeners (dragover, drop, dragleave) are added here anymore
+    });
+
+    // --- Setup Inventory Grid ---
+    if (inventoryGridEl) {
+        inventoryGridEl.innerHTML = ''; // Clear grid
+
+        // --- Remove D&D listeners from grid container (if they were ever added) ---
+        // This check is safe even if the handlers are undefined
+        if (typeof handleDragOver === 'function') inventoryGridEl.removeEventListener('dragover', handleDragOver);
+        if (typeof handleDragLeave === 'function') inventoryGridEl.removeEventListener('dragleave', handleDragLeave);
+        if (typeof handleDrop === 'function') inventoryGridEl.removeEventListener('drop', handleDrop);
+        // -------------------------------------------------------------------------
+
+        const size = currentCharacterData.inventorySize || 60;
+        const items = currentCharacterData.inventory || [];
+
+        for (let i = 0; i < size; i++) {
+            const item = items[i] || null;
+            const slotEl = document.createElement('div');
+            slotEl.className = 'inv-slot';
+            slotEl.dataset.slotIndex = i; // Keep index for identification
+
+            // --- Clean potential old context listener ---
+             const newSlotEl = slotEl.cloneNode(true); // Use cloneNode for inventory slots too
+             // We need to append before adding new listeners if using cloneNode this way...
+             // Let's revert to manual removal for inventory slots as it's simpler in a loop
+
+             slotEl.removeEventListener('contextmenu', handleContextMenu);
+             slotEl.removeEventListener('mouseover', handleSlotMouseOver);
+             slotEl.removeEventListener('mouseout', handleSlotMouseOut);
+             slotEl.removeEventListener('mousemove', handleSlotMouseMove);
+             slotEl.removeAttribute('draggable'); // Ensure draggable is removed
+             slotEl.classList.remove('has-item', 'dragging', 'drag-over'); // Clean classes
+             //------------------------------------------------
+
+            if (item && item.name) {
+                // Item in Slot
+                 // TODO: Update display to show quantity
+                slotEl.textContent = item.name.substring(0, 1);
+                slotEl.classList.add('has-item');
+                slotEl.dataset.itemId = item.id;
+
+                // Add Tooltip listeners
+                slotEl.addEventListener('mouseover', handleSlotMouseOver);
+                slotEl.addEventListener('mouseout', handleSlotMouseOut);
+                slotEl.addEventListener('mousemove', handleSlotMouseMove);
+                // Add Context Menu Listener
+                slotEl.addEventListener('contextmenu', (e) => handleContextMenu(e, 'inventory', i));
+
+            } else {
+                // Slot Empty
+                // Styles are handled by CSS :not(.has-item)
+            }
+            inventoryGridEl.appendChild(slotEl);
+        }
+    }
+    console.log(`--- displayInventoryPanel END ---`);
+}
+async function saveEquipmentAndInventory() {
+    if (!currentCharacterData || !auth.currentUser) {
+        console.error("Cannot save equipment/inventory: Character data or user missing.");
+        // Display error in the currently active panel if possible
+        const activePanel = document.querySelector('.town-panel.active');
+        if (activePanel) {
+             displayPanelError(activePanel.id, "Error: Cannot save changes. Character/Login missing.");
+        }
+        return; // Stop if essential data is missing
+    }
+
+    console.log("Attempting to save equipment and inventory...");
+    // Log concise versions to avoid flooding console if large inventory
+    console.log(" - Equipped:", JSON.stringify(Object.keys(currentCharacterData.equipped || {})));
+    console.log(" - Inventory Count:", currentCharacterData.inventory?.length);
+
+    // Optional: Add a visual loading indicator here if desired
+
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            equipped: currentCharacterData.equipped, // Save the updated equipped object
+            inventory: currentCharacterData.inventory // Save the updated inventory array
+        });
+        console.log("Equipment and inventory saved successfully to Firestore.");
+        // Optional: Remove loading indicator
+
+    } catch (error) {
+        console.error("Firestore Error: Failed to save equipment/inventory update:", error);
+         const activePanel = document.querySelector('.town-panel.active');
+         if (activePanel) {
+            displayPanelError(activePanel.id, `Critical Error: Failed to save changes! (${error.code || error.message})`);
+         }
+        // Optional: Remove loading indicator
+        // NOTE: Rollback of local data on save failure is complex. Currently,
+        // local data might be out of sync with DB if this save fails.
+    }
+}
 function displayMissionsPanel() { /* TODO */ }
 function displayStationPanel() { /* TODO */ }
 function displayStatsPanel() { /* TODO */ }
@@ -767,7 +1450,416 @@ function displayMapPanel() {
          });
     }
     // ----------------------------------
-}function displayVendorPanel() { /* TODO */ }
+}
+// Add this function definition
+// Add this function definition
+// Add this function definition
+
+/**
+ * Processes the sale of all items currently selected in the itemsToSellIndices array.
+ */
+/**
+ * Processes the sale of all items currently selected in the itemsToSellIndices array.
+ * Updates local data, saves to Firestore, and refreshes UI including town header currency.
+ */
+async function processSaleOfSelectedItems() {
+    if (!isSellModeActive || itemsToSellIndices.length === 0) {
+        displayVendorError("No items selected or not in sell mode.");
+        return;
+    }
+    if (!currentCharacterData || !auth.currentUser) {
+        displayVendorError("Error: Character data missing or not logged in.");
+        return;
+    }
+
+    // --- Disable buttons during processing ---
+    const sellButton = document.getElementById('sell-selected-button');
+    const toggleButton = document.getElementById('toggle-sell-mode-button');
+    if(sellButton) sellButton.disabled = true;
+    if(toggleButton) toggleButton.disabled = true;
+    displayVendorError("Processing sale..."); // Indicate activity
+
+    // --- Calculate Total Value ---
+    let totalSellValue = 0;
+    const itemsBeingSoldNames = []; // For logging/confirmation
+    itemsToSellIndices.forEach(index => {
+        const item = currentCharacterData.inventory[index];
+        if (item && item.sellValue) {
+            totalSellValue += item.sellValue;
+            itemsBeingSoldNames.push(item.name);
+        }
+    });
+
+    console.log(`Attempting to sell ${itemsToSellIndices.length} items for ${totalSellValue} Credits:`, itemsBeingSoldNames.join(', '));
+
+    // --- Perform Local Updates ---
+    const previousCurrency = currentCharacterData.currency;
+    const previousInventory = [...currentCharacterData.inventory]; // Shallow copy for rollback
+    const townCurrencyEl = document.getElementById('town-currency'); // Get town currency element reference
+
+    // 1. Add Credits (Local)
+    currentCharacterData.currency += totalSellValue;
+
+    // ---> Update Town Header Currency Display (Local Update) <---
+    if (townCurrencyEl) {
+        townCurrencyEl.textContent = currentCharacterData.currency;
+        console.log("Updated town header currency display (local).");
+    }
+    // -------------------------------------------------------------
+
+    // 2. Create NEW inventory array EXCLUDING sold items (Local)
+    const newInventory = currentCharacterData.inventory.filter((item, index) => {
+        // Keep the item if its index is NOT in the itemsToSellIndices array
+        return !itemsToSellIndices.includes(index);
+    });
+    currentCharacterData.inventory = newInventory; // Replace old inventory
+
+    // --- Save Changes to Firestore ---
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            currency: currentCharacterData.currency,
+            inventory: currentCharacterData.inventory // Save the NEW inventory array
+        });
+        console.log("Bulk sale saved successfully to Firestore.");
+        displayVendorError(`Sold ${itemsToSellIndices.length} items for ${totalSellValue} Credits.`); // Success feedback
+
+        // --- Clear Selection State After Successful Save ---
+        itemsToSellIndices = []; // Clear selection only on successful save
+
+
+    } catch (error) {
+        console.error("Failed to save bulk sale transaction:", error);
+        displayVendorError("Critical Error: Failed to save sale! Reverting local changes.");
+
+        // --- Attempt Rollback on Save Failure ---
+        currentCharacterData.currency = previousCurrency;
+        currentCharacterData.inventory = previousInventory; // Restore previous inventory
+
+        // ---> Update Town Header Currency Display (Rollback) <---
+        if (townCurrencyEl) {
+            townCurrencyEl.textContent = currentCharacterData.currency; // Revert display
+             console.log("Rolled back town header currency display.");
+        }
+        // --------------------------------------------------------
+
+        // Note: itemsToSellIndices remain selected after a failed save, allowing retry
+
+    } finally {
+         // --- Re-enable buttons and Re-render Vendor Panel UI ---
+        if(toggleButton) toggleButton.disabled = false;
+        // Sell button state will be updated by displayVendorPanel
+        displayVendorPanel(); // Refresh the entire vendor panel view to show correct selections/inventory
+    }
+}
+
+// Make sure displayVendorError helper exists (or adapt message display)
+function displayVendorError(message) {
+    const vendorErrorEl = document.getElementById('vendor-error');
+    if (vendorErrorEl) {
+        vendorErrorEl.textContent = message;
+    }
+    if(message) console.warn("Vendor Panel Message:", message);
+}
+/**
+ * Handles clicks on sellable items within the player's vendor inventory grid.
+ * Only performs actions if isSellModeActive is true.
+ * @param {Event} event The click event.
+ */
+function handleVendorInventoryClick(event) {
+    if (!isSellModeActive) {
+        console.log("Click ignored: Sell mode not active.");
+        // Optionally add logic here for inspecting items when sell mode is OFF
+        return;
+    }
+
+    const slotElement = event.currentTarget;
+    const originalIndex = parseInt(slotElement.dataset.originalIndex, 10);
+
+    if (isNaN(originalIndex)) {
+        console.error("Invalid original index on clicked vendor item slot.");
+        return;
+    }
+
+    const item = currentCharacterData.inventory[originalIndex];
+    if (!item || !item.sellValue || item.sellValue <= 0) {
+        console.warn("Clicked unsellable item slot while in sell mode.");
+        return; // Should not happen if listener is only on sellable items
+    }
+
+    const alreadySelected = itemsToSellIndices.includes(originalIndex);
+
+    if (alreadySelected) {
+        // --- Deselect Item ---
+        itemsToSellIndices = itemsToSellIndices.filter(idx => idx !== originalIndex);
+        slotElement.classList.remove('selected-for-sale');
+        console.log(`Deselected item at index ${originalIndex}: ${item.name}`);
+    } else {
+        // --- Select Item ---
+        itemsToSellIndices.push(originalIndex);
+        slotElement.classList.add('selected-for-sale');
+        console.log(`Selected item at index ${originalIndex}: ${item.name}`);
+    }
+
+    // Update the sell button text/state
+    updateSellButtonState();
+}
+/**
+ * Toggles the vendor panel's selling mode on/off.
+ */
+function toggleSellMode() {
+    isSellModeActive = !isSellModeActive; // Toggle the state
+
+    const toggleButton = document.getElementById('toggle-sell-mode-button');
+    const sellModeIndicator = document.getElementById('sell-mode-indicator');
+    const playerSellArea = document.querySelector('.player-sell-area'); // Target the parent container
+
+
+    if (toggleButton) {
+        toggleButton.textContent = isSellModeActive ? 'Exit Sell Mode' : 'Enable Sell Mode';
+        toggleButton.classList.toggle('active', isSellModeActive);
+    }
+     if (sellModeIndicator) {
+        sellModeIndicator.textContent = isSellModeActive ? 'Select Items to Sell' : 'View Inventory';
+     }
+     playerSellArea?.classList.toggle('sell-mode-active', isSellModeActive);
+
+
+    if (!isSellModeActive) {
+        // --- Cleanup when exiting sell mode ---
+        itemsToSellIndices = []; // Clear selection array
+        // Remove visual selection from all items in the grid
+        const playerGrid = document.getElementById('vendor-player-inventory-grid');
+        playerGrid?.querySelectorAll('.inv-slot.selected-for-sale').forEach(slot => {
+            slot.classList.remove('selected-for-sale');
+        });
+        console.log("Exited Sell Mode, selection cleared.");
+    } else {
+        console.log("Entered Sell Mode.");
+    }
+
+    // Update the sell button state (it might become enabled/disabled)
+    updateSellButtonState();
+}
+/**
+ * Populates the vendor panel UI with vendor info, player credits, and player inventory.
+ * Handles setting up sell mode interactions.
+ */
+function displayVendorPanel() {
+    console.log("Displaying Vendor Panel");
+    if (!currentCharacterData) {
+        console.error("Cannot display vendor panel: Character data not loaded.");
+        const vendorError = document.getElementById('vendor-error');
+        if(vendorError) vendorError.textContent = "Error: Character data not loaded.";
+        return;
+    }
+
+    // --- Get Elements & Vendor Data ---
+    currentVendorId = 'starhaven_kiosk'; // Assuming default vendor
+    const vendorData = VENDOR_DATA[currentVendorId];
+    const vendorNameEl = document.getElementById('vendor-name');
+    const playerCurrencyEl = document.getElementById('vendor-player-currency');
+    const playerInventoryGridEl = document.getElementById('vendor-player-inventory-grid');
+    const vendorStockGridEl = document.getElementById('vendor-stock-grid');
+    const vendorErrorEl = document.getElementById('vendor-error');
+    const toggleSellModeButton = document.getElementById('toggle-sell-mode-button');
+    const sellSelectedButton = document.getElementById('sell-selected-button');
+    const sellModeIndicator = document.getElementById('sell-mode-indicator');
+
+    // --- Clear Previous State / Attach Listeners ---
+    if(vendorErrorEl) vendorErrorEl.textContent = '';
+    if (playerInventoryGridEl) playerInventoryGridEl.innerHTML = '<p class="placeholder-text" style="display: none;">Loading inventory...</p>'; // Clear player grid, hide loading text quickly
+    if (vendorStockGridEl) vendorStockGridEl.innerHTML = '<p class="placeholder-text">Loading stock...</p>'; // Clear vendor grid
+
+    // Attach listeners to control buttons (ensure only one listener is attached)
+    if (toggleSellModeButton) {
+        toggleSellModeButton.removeEventListener('click', toggleSellMode); // Prevent duplicates
+        toggleSellModeButton.addEventListener('click', toggleSellMode);
+    }
+    if (sellSelectedButton) {
+        sellSelectedButton.removeEventListener('click', processSaleOfSelectedItems); // Prevent duplicates
+        sellSelectedButton.addEventListener('click', processSaleOfSelectedItems);
+    }
+
+    // Set Vendor Name
+    if (vendorNameEl && vendorData) vendorNameEl.textContent = vendorData.name || "Vendor";
+    else if (vendorNameEl) vendorNameEl.textContent = "Unknown Vendor";
+
+    // Display Player Currency
+    if (playerCurrencyEl) playerCurrencyEl.textContent = currentCharacterData.currency || 0;
+
+    // --- Update Sell Mode UI Elements ---
+    if (toggleSellModeButton) {
+         toggleSellModeButton.textContent = isSellModeActive ? 'Exit Sell Mode' : 'Enable Sell Mode';
+         toggleSellModeButton.classList.toggle('active', isSellModeActive);
+    }
+     if (sellModeIndicator) {
+        sellModeIndicator.textContent = isSellModeActive ? 'Select Items to Sell' : 'View Inventory';
+     }
+     document.querySelector('.player-sell-area')?.classList.toggle('sell-mode-active', isSellModeActive);
+
+    // --- Display Player Inventory for Selling ---
+    if (playerInventoryGridEl) {
+        playerInventoryGridEl.innerHTML = ''; // Clear loading/previous content immediately
+        const items = currentCharacterData.inventory || [];
+        const size = currentCharacterData.inventorySize || 60;
+
+        // ----- Removed the "Inventory empty" message logic from here -----
+
+        // Render items present in inventory
+        let hasRenderedItems = false;
+        items.forEach((item, index) => {
+            if (!item || !item.name) return; // Skip if item is somehow null/invalid
+
+            const slotEl = document.createElement('div');
+            slotEl.className = 'inv-slot has-item';
+            slotEl.dataset.originalIndex = index; // Store the ORIGINAL index
+            slotEl.dataset.itemId = item.id;
+            slotEl.textContent = item.name.substring(0, 1); // Or icon
+
+            // Add Tooltip Listeners
+            slotEl.removeEventListener('mouseover', handleSlotMouseOver);
+            slotEl.removeEventListener('mouseout', handleSlotMouseOut);
+            slotEl.removeEventListener('mousemove', handleSlotMouseMove);
+            slotEl.addEventListener('mouseover', handleSlotMouseOver);
+            slotEl.addEventListener('mouseout', handleSlotMouseOut);
+            slotEl.addEventListener('mousemove', handleSlotMouseMove);
+
+            // Add Sell Mode Click Listener (only if sellable)
+            slotEl.removeEventListener('click', handleVendorInventoryClick); // Cleanup
+            if (item.sellValue && item.sellValue > 0) {
+                slotEl.classList.add('sellable');
+                slotEl.addEventListener('click', handleVendorInventoryClick);
+                // Check if this item is already selected for sale
+                if (itemsToSellIndices.includes(index)) {
+                    slotEl.classList.add('selected-for-sale');
+                }
+            } else {
+                slotEl.classList.add('unsellable');
+                slotEl.style.cursor = 'not-allowed';
+            }
+
+            playerInventoryGridEl.appendChild(slotEl);
+            hasRenderedItems = true; // Mark that we added at least one item
+        });
+
+        // If no items were actually rendered, add a less intrusive placeholder (optional)
+        // if (!hasRenderedItems && size > 0) {
+        //     // You could add a subtle visual indicator or leave it blank
+        //     // Example: playerInventoryGridEl.classList.add('truly-empty');
+        // }
+
+
+        // Optional: Render empty slots placeholders if desired (for visual consistency)
+        const currentItemCount = items.filter(Boolean).length;
+         for (let i = currentItemCount; i < size; i++) {
+             const emptySlotEl = document.createElement('div');
+             emptySlotEl.className = 'inv-slot empty-inv-slot';
+             playerInventoryGridEl.appendChild(emptySlotEl);
+         }
+
+    } else {
+        console.error("Player inventory grid element not found for vendor panel.");
+    }
+
+    // --- Display Vendor Inventory (Placeholder) ---
+    if (vendorStockGridEl) {
+        vendorStockGridEl.innerHTML = '<p class="placeholder-text">Vendor buying implemented later.</p>';
+        // TODO: Populate vendor stock
+    }
+
+    // --- Final UI State Update ---
+    updateSellButtonState(); // Set initial state of the sell button
+}
+
+/**
+ * Handles clicking an item in the player's inventory grid within the vendor panel.
+ * @param {Event} event The click event.
+ */
+async function handleSellItemClick(event) {
+    if (!currentCharacterData || !auth.currentUser) {
+        displayVendorError("Error: Character data not loaded or user not logged in.");
+        return;
+    }
+
+    const slotElement = event.currentTarget; // The clicked .inv-slot div
+    const originalIndex = parseInt(slotElement.dataset.slotIndex, 10); // Get the item's index in the main inventory array
+
+    if (isNaN(originalIndex) || originalIndex < 0 || originalIndex >= currentCharacterData.inventory.length) {
+        console.error("Invalid slot index clicked:", slotElement.dataset.slotIndex);
+        displayVendorError("Error processing sale. Invalid item index.");
+        return;
+    }
+
+    const itemToSell = currentCharacterData.inventory[originalIndex];
+
+    if (!itemToSell) {
+        console.error("Clicked slot index refers to an empty/invalid item:", originalIndex);
+        displayVendorError("Error: Item not found at clicked slot.");
+        return; // Should not happen if listener only added to items
+    }
+
+    const sellValue = itemToSell.sellValue || 0;
+
+    if (sellValue <= 0) {
+        console.warn("Attempted to sell unsellable item:", itemToSell.name);
+        displayVendorError(`Cannot sell ${itemToSell.name}. No sell value.`);
+        return; // Should not happen if listener prevented
+    }
+
+    // --- Confirmation --- (Simple browser confirm)
+    const confirmSale = confirm(`Sell ${itemToSell.name} for ${sellValue} Credits?`);
+    if (!confirmSale) {
+        return; // User cancelled
+    }
+    // --------------------
+
+    console.log(`Selling ${itemToSell.name} (Index: ${originalIndex}) for ${sellValue} credits.`);
+    displayVendorError(""); // Clear previous errors
+
+    // --- Perform Local Updates ---
+    const previousCurrency = currentCharacterData.currency;
+    const previousInventory = [...currentCharacterData.inventory]; // Shallow copy for potential rollback
+
+    // 1. Add Credits
+    currentCharacterData.currency += sellValue;
+
+    // 2. Remove Item from Inventory (using the original index)
+    currentCharacterData.inventory.splice(originalIndex, 1);
+
+    // --- Update UI Immediately ---
+    // Re-render the vendor panel to reflect changes
+    displayVendorPanel();
+    // Also update the main town header currency display if visible
+    if (townCurrency) townCurrency.textContent = currentCharacterData.currency;
+
+    // --- Save Changes to Firestore ---
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            currency: currentCharacterData.currency,
+            inventory: currentCharacterData.inventory // Save the modified inventory array
+        });
+        console.log("Vendor transaction saved successfully to Firestore.");
+        // Optional: Add a success message to the vendor panel?
+        // displayVendorMessage(`Sold ${itemToSell.name} for ${sellValue} Credits.`);
+
+    } catch (error) {
+        console.error("Failed to save vendor transaction:", error);
+        displayVendorError("Critical Error: Failed to save sale! Reverting changes.");
+
+        // --- Attempt Rollback on Save Failure ---
+        currentCharacterData.currency = previousCurrency;
+        currentCharacterData.inventory = previousInventory;
+
+        // Re-render UI again to show reverted state
+        displayVendorPanel();
+        if (townCurrency) townCurrency.textContent = currentCharacterData.currency;
+        // ---------------------------------------
+    }
+}
+
+// Helper function to display errors specifically in the vendor panel
 function displayCraftingPanel() { /* TODO */ }
 
 // --- Skill Panel Listeners & Saving ---
@@ -777,8 +1869,121 @@ function handleAssignSlotClick(event) { const slot = event.target.closest('.assi
 async function saveSkillAssignments() { if (!currentCharacterData || !auth.currentUser) return; const assignments = {}; skillBar.slots.forEach((s, i) => { assignments[i] = s.skillId || null; }); try { await updateDoc(doc(db, "characters", currentCharacterData.id), { skillAssignments: assignments }); currentCharacterData.skillAssignments = assignments; console.log("Assignments saved."); } catch (e) { console.error("Save assignments error:", e); displayError(charCreateError, "Failed to save skill setup."); } }
 
 // --- Tooltip Functions ---
-function formatItemTooltip(itemData) { if (!itemData) return ''; function fmt(key){ const map={'physicalDamageMin':'Min Phys Dmg','physicalDamageMax':'Max Phys Dmg','attackSpeed':'Attack Speed','critChance':'Crit Chance'}; return map[key] || key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase()); } let html=`<div class="item-name">${itemData.name||'Unknown'}</div>`; if(itemData.type){html+=`<span class="item-type">${itemData.type}</span>`;} if(itemData.baseStats){Object.entries(itemData.baseStats).forEach(([k,v])=>{const n=fmt(k);const fv=(k==='critChance')?`${v.toFixed(1)}%`:v;html+=`<span class="item-stat">${n}: <span class="value">${fv}</span></span>`;});} return html; }
-function showTooltip(event, element) { if (!itemTooltip || !currentCharacterData) return; let itemData = null; if (element.classList.contains('equip-slot')) { const slotName = element.dataset.slot; itemData = currentCharacterData.equipped?.[slotName]; } if (itemData) { itemTooltip.innerHTML = formatItemTooltip(itemData); positionTooltip(event); itemTooltip.classList.add('visible'); itemTooltip.classList.remove('hidden'); } else { hideTooltip(); } }
+/**
+ * Formats the HTML content for the item tooltip.
+ * Now accepts an item instance which may include quantity.
+ * @param {object} itemInstance - The item instance data (potentially with quantity).
+ * @returns {string} HTML string for the tooltip.
+ */
+function formatItemTooltip(itemInstance) {
+    if (!itemInstance) return '';
+
+    // Helper to format stat keys (unchanged)
+    function fmt(key) {
+        const map = {
+            'physicalDamageMin': 'Min Phys Dmg', 'physicalDamageMax': 'Max Phys Dmg',
+            'attackSpeed': 'Attack Speed', 'critChance': 'Crit Chance %',
+            'defense': 'Defense', 'addedPhysicalDamage': '+ Flat Phys Dmg',
+            'percentIncreasedPhysicalDamage': '% Incr Phys Dmg',
+            'percentIncreasedAttackSpeed': '% Incr Attack Speed',
+        };
+        return map[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    }
+
+    // --- Tooltip HTML Construction ---
+    let html = `<div class="item-name rarity-${itemInstance.rarity || 'common'}">${itemInstance.name || 'Unknown Item'}</div>`;
+
+    // --- Display Quantity if greater than 1 ---
+     if (itemInstance.quantity && itemInstance.quantity > 1) {
+        html += `<div class="item-quantity">Quantity: ${itemInstance.quantity}</div>`;
+     }
+    // -----------------------------------------
+
+    if (itemInstance.type) {
+        html += `<span class="item-type">${itemInstance.type} ${itemInstance.slot ? `(${itemInstance.slot.join('/')})` : ''}</span>`;
+    }
+
+    // Display Base Stats
+    if (itemInstance.baseStats && Object.keys(itemInstance.baseStats).length > 0) {
+         html += '<div class="item-stats-section">';
+        Object.entries(itemInstance.baseStats).forEach(([key, value]) => {
+            const name = fmt(key);
+            let formattedValue = value;
+            if (key.includes('percent') || key === 'critChance') {
+                formattedValue = `${(value * 100).toFixed(1)}%`;
+            } else if (key === 'attackSpeed') {
+                formattedValue = value.toFixed(2);
+            } else if (typeof value === 'number' && !Number.isInteger(value)) {
+                 formattedValue = value.toFixed(1); // Basic float formatting
+            }
+            html += `<span class="item-stat">${name}: <span class="value">${formattedValue}</span></span>`;
+        });
+         html += '</div>';
+    }
+
+    // Display Stack Info (Max Stack) if stackable
+    if (itemInstance.stackable) {
+        html += `<span class="item-stack-info">Max Stack: ${itemInstance.maxStack || '?'}</span>`;
+    }
+
+    // Display Sell Value
+    if (typeof itemInstance.sellValue === 'number' && itemInstance.sellValue > 0) {
+        html += `<span class="item-sell-value">Sell Value: <span class="value currency">${itemInstance.sellValue}</span></span>`;
+    }
+
+    return html;
+}
+/**
+ * Displays the item tooltip based on the hovered element.
+ * Handles equipment slots, inventory slots (main panel & vendor panel), and loot items.
+ * @param {Event} event The mouse event.
+ * @param {HTMLElement} element The element being hovered over.
+ */
+function showTooltip(event, element) {
+    if (!itemTooltip || !currentCharacterData) return; // Ensure tooltip element and character data exist
+    let itemInstance = null; // Changed variable name to reflect we get the INSTANCE
+
+    try { // Added try-catch for safety when accessing data attributes/arrays
+        if (element.classList.contains('equip-slot')) {
+            const slotName = element.dataset.slot;
+            itemInstance = currentCharacterData.equipped?.[slotName] || null; // Get equipped item instance
+        }
+        else if (element.classList.contains('inv-slot') && element.classList.contains('has-item')) { // Check it's an inventory slot AND it has an item
+            let itemIndex = -1;
+            // Check for vendor panel's originalIndex first
+            if (element.dataset.originalIndex !== undefined) {
+                itemIndex = parseInt(element.dataset.originalIndex, 10);
+            }
+            // Fallback check for main inventory panel's slotIndex (if you use that elsewhere)
+            else if (element.dataset.slotIndex !== undefined) {
+                 itemIndex = parseInt(element.dataset.slotIndex, 10);
+            }
+
+            // Retrieve the specific item instance from the inventory array using the found index
+            if (!isNaN(itemIndex) && itemIndex >= 0 && Array.isArray(currentCharacterData.inventory) && itemIndex < currentCharacterData.inventory.length) {
+                itemInstance = currentCharacterData.inventory[itemIndex]; // Get the actual item object WITH quantity
+            }
+        }
+        else if (element.classList.contains('loot-item') && element.dataset.itemData) {
+            // Loot items have data stringified in dataset, parse it. Quantity isn't usually relevant here yet.
+            itemInstance = JSON.parse(element.dataset.itemData);
+        }
+    } catch (e) {
+         console.error("Error retrieving item data for tooltip:", e, "Element:", element);
+         itemInstance = null;
+    }
+
+
+    // Now, display the tooltip using the retrieved item instance
+    if (itemInstance) {
+        itemTooltip.innerHTML = formatItemTooltip(itemInstance); // Pass the instance to format
+        positionTooltip(event);
+        itemTooltip.classList.add('visible');
+        itemTooltip.classList.remove('hidden');
+    } else {
+        hideTooltip(); // Hide if no valid item instance was found
+    }
+}
 function hideTooltip() { if (!itemTooltip) return; itemTooltip.classList.remove('visible'); itemTooltip.classList.add('hidden'); }
 function positionTooltip(event) { if (!itemTooltip) return; const r=itemTooltip.getBoundingClientRect(); const ox=15, oy=15; let l=event.clientX+ox; let t=event.clientY+oy; if(l+r.width>window.innerWidth){l=event.clientX-r.width-ox;} if(t+r.height>window.innerHeight){t=event.clientY-r.height-oy;} if(l<0)l=ox; if(t<0)t=oy; itemTooltip.style.left=`${l}px`; itemTooltip.style.top=`${t}px`; }
 function handleSlotMouseOver(event) { showTooltip(event, this); }
