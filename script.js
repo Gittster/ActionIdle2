@@ -227,6 +227,17 @@ const SHIP_UPGRADE_DEFINITIONS = {
         unlocksFeature: 'autoLootCredits',
         icon: null // Placeholder for a future icon path
     },
+    'auto_attack_basic_lmb': {
+        id: 'auto_attack_basic_lmb',
+        name: "Basic Targeting Assist (LMB)",
+        description: "Automatically triggers your assigned LMB skill against the furthest top-left enemy when active and LMB is not manually held.",
+        type: 'combat_assist',
+        costCredits: 1000, // New cost
+        costItems: [],
+        prerequisites: [], // No prereqs for now
+        unlocksFeature: 'autoAttackLMB',
+        icon: null
+    },
     'hyperdrive_stabilizer_alpha': { // The "Act 1" progression item
         id: 'hyperdrive_stabilizer_alpha',
         name: "Alpha-Band Hyperdrive Stabilizer",
@@ -677,33 +688,70 @@ function chooseWeightedRandom(chances) {
 }
 
 // NEW FUNCTION BLOCK
+/**
+ * Finds the best target for auto-attack based on "furthest upper-left" logic.
+ * @returns {object | null} The enemy data object or null if no valid target.
+ */
+function findAutoAttackTarget_UpperLeft() {
+    if (!currentEnemies || currentEnemies.length === 0) {
+        return null; // No enemies present
+    }
 
+    let bestTarget = null;
+    let minFoundY = Infinity;
+    let minFoundX = Infinity;
+
+    for (const enemy of currentEnemies) {
+        // Ensure enemy is valid and alive
+        if (enemy && enemy.currentHp > 0) {
+            if (enemy.gridY < minFoundY) {
+                // Found an enemy higher up
+                minFoundY = enemy.gridY;
+                minFoundX = enemy.gridX; // Reset min X for this new top row
+                bestTarget = enemy;
+            } else if (enemy.gridY === minFoundY) {
+                // Enemy is on the same top row, check if it's further left
+                if (enemy.gridX < minFoundX) {
+                    minFoundX = enemy.gridX;
+                    bestTarget = enemy;
+                }
+            }
+        }
+    }
+
+    // if (bestTarget) {
+    //     console.log(`Auto-attack target found: ${bestTarget.name} at [${bestTarget.gridX}, ${bestTarget.gridY}]`);
+    // } else {
+    //     console.log("No valid auto-attack target found.");
+    // }
+    return bestTarget;
+}
 /**
  * Calculates loot drops and XP for a defeated enemy.
+ * Checks auto-loot setting before collecting credits.
  * Tracks KILL_ENEMY mission objectives.
- * @param {object} enemyData - The data object of the defeated enemy (should include typeId, xpValue).
+ * @param {object} enemyData - The data object of the defeated enemy (should include typeId).
  */
 async function handleEnemyDeath(enemyData) {
     console.log(`--- handleEnemyDeath START for ${enemyData.name} (Type: ${enemyData.typeId}) ---`);
-    const enemyDefinition = ENEMY_DEFINITIONS[enemyData.typeId]; // Get the full definition for XP and ID checks
-
+    const enemyDefinition = ENEMY_DEFINITIONS[enemyData.typeId];
     if (!enemyDefinition) {
         console.warn(`No enemy definition found for typeId: ${enemyData.typeId}. Cannot process death fully.`);
         return;
     }
 
-    let progressChangedForSave = false; // Flag to determine if Firestore save is needed
+    let progressChangedForSave = false; // Flag for saving Firestore data
 
     // --- Grant XP ---
     if (enemyDefinition.xpValue > 0 && currentCharacterData.level < MAX_LEVEL) {
-        currentCharacterData.experience += enemyDefinition.xpValue;
+        currentCharacterData.experience = (currentCharacterData.experience || 0) + enemyDefinition.xpValue; // Ensure experience exists
         addCombatLogMessage(`Gained ${enemyDefinition.xpValue} XP.`);
         console.log(`Gained ${enemyDefinition.xpValue} XP. Current XP: ${currentCharacterData.experience}/${currentCharacterData.xpToNextLevel}`);
-        if (checkForLevelUp()) { // checkForLevelUp returns true if level up occurred
-            // Level up messages and main UI updates (level, XP bar) are handled inside checkForLevelUp
+        if (checkForLevelUp()) {
+             progressChangedForSave = true; // Leveling up is progress
         }
-        updateXpBarDisplay(); // Ensure XP bar is always updated after XP gain
-        progressChangedForSave = true;
+        updateXpBarDisplay();
+        progressChangedForSave = true; // Gaining XP is progress
     }
     // ----------------
 
@@ -716,7 +764,10 @@ async function handleEnemyDeath(enemyData) {
             const missionDef = MISSION_DEFINITIONS[missionId];
             if (!missionDef) continue;
 
-            let missionProgressMade = false;
+            // *** Declare variable HERE (before objective loop) ***
+            let missionProgressMadeThisIteration = false;
+            // ****************************************************
+
             for (const objDef of missionDef.objectives) {
                 if (objDef.type === 'KILL_ENEMY' && objDef.targetId === enemyData.typeId) {
                     const objectiveProgress = activeMission.objectivesProgress[objDef.id];
@@ -725,20 +776,22 @@ async function handleEnemyDeath(enemyData) {
                         console.log(`Mission '${missionDef.title}' progress: ${objDef.text} (${objectiveProgress.currentCount}/${objDef.requiredCount})`);
                         addCombatLogMessage(`Progress: ${missionDef.title} - ${objDef.text.substring(0,20)}...`);
 
-
                         if (objectiveProgress.currentCount >= objDef.requiredCount) {
                             objectiveProgress.isComplete = true;
                             console.log(`Objective '${objDef.text}' for mission '${missionDef.title}' COMPLETED.`);
                         }
-                        missionProgressMade = true;
+                        missionProgressMadeThisIteration = true; // Mark progress for THIS objective
                     }
                 }
+            } // <-- End of objectives loop
+
+            // *** Check variable HERE (after objective loop) ***
+            if (missionProgressMadeThisIteration) {
+                progressChangedForSave = true; // Mark overall progress change
+                // Check if the entire mission is now complete (checkMissionCompletion handles save if status changes)
+                await checkMissionCompletion(missionId);
             }
-            if (missionProgressMade) {
-                // Check if the entire mission is now complete
-                await checkMissionCompletion(missionId); // Make this async if completeMission is async
-                progressChangedForSave = true; // Mark that mission data might have changed
-            }
+            // *************************************************
         }
     }
     // -----------------------------------------
@@ -747,59 +800,67 @@ async function handleEnemyDeath(enemyData) {
     const lootTable = LOOT_TABLES[enemyData.typeId];
     const droppedLootForZoneDisplay = [];
     let autoCollectedCreditsAmount = 0;
-    const hasAutoLootCredits = currentCharacterData?.unlockedUpgrades?.includes('auto_loot_credits_1');
+    const hasAutoLootUpgrade = currentCharacterData?.unlockedUpgrades?.includes('auto_loot_credits_1');
+    const isAutoLootEnabled = currentCharacterData?.automationSettings?.autoLootCreditsEnabled === true;
+    const shouldAutoLootCredits = hasAutoLootUpgrade && isAutoLootEnabled;
+
+    console.log(`Loot Table found: ${!!lootTable}. Auto-Loot Setting: ${isAutoLootEnabled} (Upgrade Owned: ${hasAutoLootUpgrade})`);
 
     if (lootTable) {
-        // Credits
-        if (Math.random() < (lootTable.creditsChance ?? 0)) {
-            const amount = Math.floor(Math.random() * ((lootTable.creditsMax || 0) - (lootTable.creditsMin || 0) + 1)) + (lootTable.creditsMin || 0);
+        // Credits Roll logic... (no changes needed here)
+        const creditChance = lootTable.creditsChance ?? 0;
+        if (Math.random() < creditChance) {
+            const minCredits = lootTable.creditsMin || 0;
+            const maxCredits = lootTable.creditsMax || 0;
+            const amount = Math.floor(Math.random() * (maxCredits - minCredits + 1)) + minCredits;
             if (amount > 0) {
-                if (hasAutoLootCredits) {
+                if (shouldAutoLootCredits) {
                     currentCharacterData.currency = (currentCharacterData.currency || 0) + amount;
                     autoCollectedCreditsAmount += amount;
                     addCombatLogMessage(`Auto-collected ${amount} Credits.`);
-                    progressChangedForSave = true;
+                    progressChangedForSave = true; // Mark currency changed
                 } else {
                     droppedLootForZoneDisplay.push({ type: 'credits', amount: amount });
                 }
             }
         }
-        // Items
-        if (Math.random() < (lootTable.itemDropChance ?? 0)) {
-            const numberOfItems = Math.floor(Math.random() * (lootTable.maxItemDrops || 1)) + 1;
-            for (let i = 0; i < numberOfItems; i++) {
-                const rarity = chooseWeightedRandom(lootTable.rarityChances);
-                if (!rarity) continue;
-                const pool = lootTable.itemPools?.[rarity];
-                if (!pool || pool.length === 0) continue;
-                const itemId = pool[Math.floor(Math.random() * pool.length)];
-                const itemBaseData = ITEM_DEFINITIONS[itemId];
-                if (!itemBaseData) continue;
-                droppedLootForZoneDisplay.push({ type: 'item', itemData: { ...itemBaseData, rarity: itemBaseData.rarity || rarity } });
-            }
-        }
-    } else {
-        console.warn(`No loot table found for enemy type: ${enemyData.typeId}`);
-    }
+
+        // Item Drops logic... (no changes needed here)
+         if (Math.random() < (lootTable.itemDropChance ?? 0)) {
+             const numberOfItems = Math.floor(Math.random() * (lootTable.maxItemDrops || 1)) + 1;
+             for (let i = 0; i < numberOfItems; i++) {
+                 const rarity = chooseWeightedRandom(lootTable.rarityChances);
+                 if (!rarity) continue;
+                 const pool = lootTable.itemPools?.[rarity];
+                 if (!pool || pool.length === 0) continue;
+                 const itemId = pool[Math.floor(Math.random() * pool.length)];
+                 const itemBaseData = ITEM_DEFINITIONS[itemId];
+                 if (!itemBaseData) continue;
+                 droppedLootForZoneDisplay.push({ type: 'item', itemData: { ...itemBaseData, rarity: itemBaseData.rarity || rarity } });
+             }
+         }
+    } else { /* ... warning ... */ }
 
     if (droppedLootForZoneDisplay.length > 0) {
         currentZoneLoot.push(...droppedLootForZoneDisplay);
     }
-    displayLoot(); // Update loot UI regardless of whether new loot was added (to clear old if empty)
+    displayLoot();
 
-    // --- Save Character Progress (XP, Level, Currency, Missions) ---
-    if (progressChangedForSave) {
+    // --- Save Character Progress ---
+    if (progressChangedForSave) { // Check if XP, Level, Currency(auto-loot), or Mission Progress changed
+        console.log("Progress changed, attempting save...");
         try {
             const charRef = doc(db, "characters", currentCharacterData.id);
+            // Save all potentially modified fields
             await updateDoc(charRef, {
                 level: currentCharacterData.level,
                 experience: currentCharacterData.experience,
                 xpToNextLevel: currentCharacterData.xpToNextLevel,
                 currency: currentCharacterData.currency,
-                activeMissions: currentCharacterData.activeMissions, // Save mission progress
+                activeMissions: currentCharacterData.activeMissions,
                 completedMissions: currentCharacterData.completedMissions
             });
-            console.log("Character progress (XP, Level, Currency, Missions) saved to Firestore.");
+            console.log("Character progress saved.");
         } catch (error) {
             console.error("Failed to save character progress after enemy death:", error);
         }
@@ -1038,6 +1099,43 @@ function showZoneCompletionOptions(show = true) {
         zoneCompletionOverlay.classList.toggle('hidden', !show);
     }
 }
+/**
+ * Updates the visibility and functionality of the Restart Zone button in the header.
+ * @param {'active' | 'completed'} state - Current combat state.
+ * @param {string | null} currentZoneIdForRestart - The ID of the current zone if restart is an option.
+ */
+function updateCombatHeaderActionButtons(state, currentZoneIdForRestart = null) {
+    const restartButton = document.getElementById('header-restart-zone-button');
+
+    if (!restartButton) {
+        console.error("Combat header restart button not found in DOM!");
+        return;
+    }
+
+    // Remove previous listeners by cloning
+    const newRestartButton = restartButton.cloneNode(true);
+    restartButton.parentNode.replaceChild(newRestartButton, restartButton);
+
+    // Default to hidden
+    newRestartButton.classList.add('hidden');
+
+    if (state === 'completed') {
+        console.log("Updating combat header for 'completed' state (showing Restart).");
+        if (currentZoneIdForRestart) {
+            newRestartButton.classList.remove('hidden'); // Show restart button
+            newRestartButton.addEventListener('click', () => {
+                console.log(`Header Restart Zone clicked: ${currentZoneIdForRestart}`);
+                const zoneInfo = ZONE_CONFIG[currentZoneIdForRestart];
+                addCombatLogMessage(`Restarting ${zoneInfo?.name || currentZoneIdForRestart}...`);
+                enterCombatZone(currentZoneIdForRestart); // Re-enter the current zone
+            });
+        }
+    } else { // 'active' state
+        console.log("Updating combat header for 'active' state (hiding restart).");
+        // Button remains hidden (already set by default hide above)
+    }
+}
+
 /**
  * Updates the XP bar display (both town and combat if they exist)
  * based on currentCharacterData.
@@ -1782,6 +1880,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     unlockedUpgrades: [],
                     activeMissions: {}, // Stores active mission progress
                     completedMissions: [], // Stores IDs of completed missions
+                    automationSettings: {
+                        autoLootCreditsEnabled: false, // Default to OFF, player must toggle
+                        autoAttackLMBEnabled: false     // Default to OFF
+                    }
                 };
                 await addDoc(collection(db, 'characters'), data);
                 showScreen('char-select');
@@ -2031,7 +2133,135 @@ function activateTownPanel(panelId) {
         console.error("Panel not found:", panelId);
     }
 }
-function displayOverviewPanel() { if (!currentCharacterData) return; if (overviewCharName) overviewCharName.textContent = currentCharacterData.name || 'Traveler'; }
+/**
+ * Displays the Overview panel, including toggles for automation features.
+ */
+function displayOverviewPanel() {
+    console.log("Displaying Overview Panel");
+    if (!currentCharacterData) {
+        displayPanelError('overview-panel', "Character data not loaded.");
+        return;
+    }
+
+    const panel = document.getElementById('overview-panel');
+    if (!panel) {
+        console.error("Overview panel element not found!");
+        return;
+    }
+
+    // --- Clear previous dynamic content (like toggles) ---
+    panel.querySelectorAll('.automation-toggle-section').forEach(el => el.remove());
+    let errorDisplay = panel.querySelector('.panel-error-display');
+    if (errorDisplay) errorDisplay.textContent = ''; // Clear errors in this panel
+    // --------------------------------------------------
+
+    // Update basic info (if placeholders exist)
+    const overviewCharNameEl = document.getElementById('overview-char-name'); // Assuming this exists
+    if (overviewCharNameEl) overviewCharNameEl.textContent = currentCharacterData.name || '[Character Name]';
+    // TODO: Update mission status / station status placeholders if desired
+
+    // --- Add Automation Toggles Section ---
+    const automationSection = document.createElement('div');
+    automationSection.className = 'automation-toggle-section';
+    const automationTitle = document.createElement('h4');
+    automationTitle.textContent = 'Automation Settings';
+    automationSection.appendChild(automationTitle);
+
+    let togglesAvailable = false;
+
+    // Ensure automationSettings object exists
+    if (!currentCharacterData.automationSettings) {
+        currentCharacterData.automationSettings = { autoLootCreditsEnabled: false, autoAttackLMBEnabled: false };
+         console.warn("Character data was missing automationSettings, initialized to default.");
+    }
+
+    // 1. Auto-Loot Toggle
+    if (currentCharacterData.unlockedUpgrades?.includes('auto_loot_credits_1')) {
+        togglesAvailable = true;
+        const toggleDiv = document.createElement('div');
+        toggleDiv.className = 'toggle-control';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'toggle-auto-loot';
+        checkbox.checked = currentCharacterData.automationSettings.autoLootCreditsEnabled === true; // Set initial state
+        checkbox.addEventListener('change', (event) => {
+            currentCharacterData.automationSettings.autoLootCreditsEnabled = event.target.checked;
+            console.log("Auto-Loot Toggled:", event.target.checked);
+            saveAutomationSettings(); // Save the change
+        });
+        const label = document.createElement('label');
+        label.htmlFor = 'toggle-auto-loot';
+        label.textContent = "Enable Auto-Loot Credits";
+        toggleDiv.appendChild(checkbox);
+        toggleDiv.appendChild(label);
+        automationSection.appendChild(toggleDiv);
+    }
+
+    // 2. Auto-Attack Toggle
+    if (currentCharacterData.unlockedUpgrades?.includes('auto_attack_basic_lmb')) {
+        togglesAvailable = true;
+        const toggleDiv = document.createElement('div');
+        toggleDiv.className = 'toggle-control';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'toggle-auto-attack-lmb';
+        checkbox.checked = currentCharacterData.automationSettings.autoAttackLMBEnabled === true; // Set initial state
+        checkbox.addEventListener('change', (event) => {
+            currentCharacterData.automationSettings.autoAttackLMBEnabled = event.target.checked;
+            console.log("Auto-Attack (LMB) Toggled:", event.target.checked);
+            saveAutomationSettings(); // Save the change
+        });
+        const label = document.createElement('label');
+        label.htmlFor = 'toggle-auto-attack-lmb';
+        label.textContent = "Enable Auto-Attack (LMB)";
+        toggleDiv.appendChild(checkbox);
+        toggleDiv.appendChild(label);
+        automationSection.appendChild(toggleDiv);
+    }
+
+    // Append section only if there are toggles to show
+    if (togglesAvailable) {
+        // Append after the existing content, or at a specific point
+        panel.appendChild(automationSection);
+    } else {
+        // Optionally display a message if no automation is unlocked yet
+        const noAutomationMsg = document.createElement('p');
+        noAutomationMsg.textContent = "No automation systems unlocked.";
+        noAutomationMsg.style.marginTop = '1rem';
+        noAutomationMsg.style.color = '#9ca3af';
+        panel.appendChild(noAutomationMsg);
+    }
+}
+/**
+ * Saves the current automation settings to Firestore.
+ */
+async function saveAutomationSettings() {
+    if (!currentCharacterData || !auth.currentUser || !currentCharacterData.automationSettings) {
+        console.error("Cannot save automation settings: Character data, user, or settings object missing.");
+        displayPanelError('overview-panel', "Error saving settings.");
+        return;
+    }
+
+    console.log("Saving automation settings:", currentCharacterData.automationSettings);
+    // Add a visual cue for saving?
+    try {
+        const charRef = doc(db, "characters", currentCharacterData.id);
+        await updateDoc(charRef, {
+            automationSettings: currentCharacterData.automationSettings // Save the whole object
+        });
+        console.log("Automation settings saved successfully.");
+        // Update UI to show saved confirmation?
+         displayPanelError('overview-panel', "Settings saved."); // Use error display for temporary success msg
+         setTimeout(() => {
+             const errorDiv = document.querySelector('#overview-panel .panel-error-display');
+             if (errorDiv && errorDiv.textContent === "Settings saved.") errorDiv.textContent = '';
+         }, 2000);
+
+    } catch (error) {
+        console.error("Firestore Error: Failed to save automation settings:", error);
+        displayPanelError('overview-panel', "Error saving settings!");
+    }
+}
 /**
  * Displays the Loadout/Inventory panel, enabling right-click context menus.
  */
@@ -3753,93 +3983,97 @@ function handleLootItemMouseMove(event) {
 
 /**
  * Handles logic for when a zone is cleared (boss defeated).
- * Updates COMPLETE_ZONE mission objectives, unlocks next zone, saves progress,
- * and shows completion options in the header.
+ * Updates COMPLETE_ZONE mission objectives, unlocks next zone (data only), saves progress,
+ * and shows the Restart Zone button in the header.
  * @param {string} zoneId The ID of the zone that was completed.
  */
 async function completeZone(zoneId) {
     console.log(`--- completeZone START for zone: ${zoneId} ---`);
     addCombatLogMessage("Zone Cleared! Congratulations!");
-    isCombatActive = false; // Stop combat loop actions, enemy attacks etc.
+    isCombatActive = false; // Stop combat loop actions
     activeRepeatSkillId = null;
     activeRepeatTargetId = null;
 
     const zoneInfo = ZONE_CONFIG[zoneId] || ZONE_CONFIG['default'];
     const nextZoneIdToUnlock = zoneInfo.unlocksZoneId;
-    let characterDataChanged = false; // Flag to indicate if a save to Firestore is needed
+    let characterDataChanged = false; // Flag to track if Firestore save is needed
 
     // --- Update Mission Objectives: COMPLETE_ZONE ---
     if (currentCharacterData && currentCharacterData.activeMissions) {
         console.log(`Checking active missions for COMPLETE_ZONE objectives related to ${zoneId}`);
         for (const missionId in currentCharacterData.activeMissions) {
             const activeMission = currentCharacterData.activeMissions[missionId];
-            // Only consider missions that are currently 'ACTIVE' (not already 'OBJECTIVES_MET' or other states)
-            if (activeMission.status !== 'ACTIVE') continue;
+            if (activeMission.status !== 'ACTIVE') continue; // Skip missions not currently active
 
             const missionDef = MISSION_DEFINITIONS[missionId];
-            if (!missionDef) continue;
+            if (!missionDef) continue; // Skip if definition is missing
 
+            // *** Declare the flag HERE, for each mission check ***
             let missionProgressMadeThisIteration = false;
+            // ****************************************************
+
+            // Loop through objectives for the current active mission
             for (const objDef of missionDef.objectives) {
+                // Check if objective is type COMPLETE_ZONE and matches the completed zoneId
                 if (objDef.type === 'COMPLETE_ZONE' && objDef.targetId === zoneId) {
                     const objectiveProgress = activeMission.objectivesProgress[objDef.id];
+                    // Check if progress exists and objective isn't already complete
                     if (objectiveProgress && !objectiveProgress.isComplete) {
-                        objectiveProgress.currentCount = (objectiveProgress.currentCount || 0) + 1;
+                        objectiveProgress.currentCount = (objectiveProgress.currentCount || 0) + 1; // Increment count
 
+                        // Check if objective requirement is met
                         if (objectiveProgress.currentCount >= objDef.requiredCount) {
-                            objectiveProgress.isComplete = true;
+                            objectiveProgress.isComplete = true; // Mark objective complete
                             console.log(`Objective '${objDef.text}' for mission '${missionDef.title}' COMPLETED by clearing zone ${zoneId}.`);
                             addCombatLogMessage(`Objective Complete: ${missionDef.title} - ${objDef.text.substring(0,30)}...`, 'quest');
                         }
-                        missionProgressMadeThisIteration = true;
-                        characterDataChanged = true; // Mark that mission progress data changed
+                        missionProgressMadeThisIteration = true; // Mark that progress was made
+                        characterDataChanged = true; // Mark that overall character data changed
                     }
                 }
-            }
+            } // --- End Objective Loop ---
 
+            // If any objective in *this mission* made progress, check if the whole mission is now ready to claim
             if (missionProgressMadeThisIteration) {
-                // Check if the entire mission is now ready to claim (this also saves the 'OBJECTIVES_MET' status)
+                // checkMissionCompletion checks all objectives and updates status to OBJECTIVES_MET if needed (and saves that status)
                 await checkMissionCompletion(missionId);
-                // checkMissionCompletion will handle its own save if status changes to OBJECTIVES_MET
-                // but we still mark characterDataChanged for other potential saves if needed.
             }
-        }
+        } // --- End Mission Loop ---
     }
     // ------------------------------------------------
 
-    // --- Unlock Next Zone (if applicable) ---
+    // --- Unlock Next Zone in Data (if applicable) ---
     if (nextZoneIdToUnlock && currentCharacterData) {
         try {
-            const user = auth.currentUser;
+            const user = auth.currentUser; // Ensure user context for saving
             if (!user) throw new Error("User not logged in for zone completion save.");
 
             const currentUnlocked = currentCharacterData.unlockedZones || [];
             if (!currentUnlocked.includes(nextZoneIdToUnlock)) {
                 const updatedUnlocked = [...currentUnlocked, nextZoneIdToUnlock];
-                currentCharacterData.unlockedZones = updatedUnlocked; // Update local data first
-                characterDataChanged = true; // Mark that unlockedZones changed
-
+                currentCharacterData.unlockedZones = updatedUnlocked; // Update local data
+                characterDataChanged = true; // Mark data change for saving
                 console.log(`Locally unlocked zone: ${nextZoneIdToUnlock}`);
                 addCombatLogMessage(`New destination available: ${ZONE_CONFIG[nextZoneIdToUnlock]?.name || nextZoneIdToUnlock}`, 'quest');
             }
         } catch (error) {
-            // This catch is for the client-side error before DB op, actual DB error handled below
             console.error("Error preparing to unlock next zone:", error);
             addCombatLogMessage("Error updating zone progression locally.");
         }
     }
-    // ------------------------------------
+    // ------------------------------------------------
 
-    // --- Save any character data changes (missions, unlocked zones) ---
+    // --- Save any character data changes (like mission progress counts or new unlocked zones) ---
+    // This save ensures progress like objective counts (that didn't trigger OBJECTIVES_MET)
+    // or newly unlocked zones are persisted. OBJECTIVES_MET status is saved by checkMissionCompletion.
     if (characterDataChanged) {
         console.log("Character data changed (missions/zones), attempting to save to Firestore.");
         try {
             const charRef = doc(db, "characters", currentCharacterData.id);
             await updateDoc(charRef, {
+                // Only save fields known to have potentially changed here
                 activeMissions: currentCharacterData.activeMissions,
                 unlockedZones: currentCharacterData.unlockedZones
-                // Note: checkMissionCompletion saves its own status update if mission becomes OBJECTIVES_MET
-                // This save ensures other objective progress (counts) or new unlockedZones are saved.
             });
             console.log("Mission progress and/or unlocked zones saved after zone completion.");
         } catch (error) {
@@ -3849,28 +4083,88 @@ async function completeZone(zoneId) {
         }
     }
 
-    // --- Show and Configure Header Buttons for Completion ---
-    updateCombatHeaderActionButtons('completed', zoneId, nextZoneIdToUnlock);
-    // ----------------------------------------------------
+    // --- Update Header Buttons to Show 'Restart' ---
+    updateCombatHeaderActionButtons('completed', zoneId); // Show restart button for the completed zone
+    // -----------------------------------------------
 
     addCombatLogMessage("Collect any remaining loot or choose an action from the header.");
     console.log(`--- completeZone END for zone: ${zoneId} ---`);
-}// END OF MODIFIED FUNCTION
+}
+
+// END OF MODIFIED FUNCTION
 // --- Combat Loop & UI Updates ---
 function updateCooldownVisuals() { if (!playerSkillBarCombat) return; const now = Date.now(); playerSkillBarCombat.querySelectorAll('.combat-skill-slot').forEach((slotDiv, i) => { const overlay = slotDiv.querySelector('.skill-cooldown-overlay'); const text = slotDiv.querySelector('.skill-cooldown-text'); if (!overlay || !text) return; const slotData = skillBar.slots[i]; const cooldownTotal = (slotData.cooldownUntil && slotData.cooldownStart) ? (slotData.cooldownUntil - slotData.cooldownStart) : (ATTACK_DEFINITIONS[slotData.skillId]?.cooldown || 0); const cooldownEnds = slotData.cooldownUntil || 0; if (cooldownTotal > 50 && cooldownEnds > now) { const remaining = cooldownEnds - now; const progress = Math.max(0, Math.min(1, remaining / cooldownTotal)); overlay.style.height = `${progress * 100}%`; const remSec = (remaining / 1000); text.textContent = remSec > 1 ? Math.ceil(remSec) : remSec.toFixed(1); text.style.display = 'block'; slotDiv.style.cursor = 'not-allowed'; } else { if (overlay.style.height !== '0%') overlay.style.height = '0%'; if (text.style.display !== 'none') text.style.display = 'none'; slotDiv.style.cursor = slotDiv.classList.contains('assigned') ? 'pointer' : 'not-allowed'; if (slotData.cooldownStart && cooldownEnds <= now) delete slotData.cooldownStart; } }); }
 function updateResourceDisplay() { const currentHp = PLAYER_STATS_PLACEHOLDER.currentHp; const maxHp = PLAYER_STATS_PLACEHOLDER.maxHp; const currentMana = PLAYER_STATS_PLACEHOLDER.currentMana; const maxMana = PLAYER_STATS_PLACEHOLDER.maxMana; if (playerHealthBar && playerHealthFill && playerHealthText) { const hpP = (maxHp > 0) ? Math.max(0, Math.min(100, (currentHp / maxHp) * 100)) : 0; playerHealthFill.style.width = `${hpP}%`; playerHealthText.textContent = `HP: ${Math.max(0, Math.round(currentHp))}/${maxHp}`; } if (playerManaBar && playerManaFill && playerManaText) { const manaP = (maxMana > 0) ? Math.max(0, Math.min(100, (currentMana / maxMana) * 100)) : 0; playerManaFill.style.width = `${manaP}%`; playerManaText.textContent = `MP: ${Math.max(0, Math.round(currentMana))}/${maxMana}`; } }
 function addCombatLogMessage(message) { if (!combatLog) return; const p = document.createElement('p'); p.textContent = message; combatLog.appendChild(p); combatLog.scrollTop = combatLog.scrollHeight; }
 function showDamageNumber(targetElement, damageAmount) { if (!targetElement || !enemyGrid) return; const numberEl = document.createElement('div'); numberEl.textContent = damageAmount; numberEl.className = 'damage-number'; const rect = targetElement.getBoundingClientRect(); const gridRect = enemyGrid.getBoundingClientRect(); const relativeLeft = rect.left - gridRect.left; const relativeTop = rect.top - gridRect.top; numberEl.style.position = 'absolute'; numberEl.style.top = `${relativeTop - 10}px`; enemyGrid.appendChild(numberEl); const numberWidth = numberEl.offsetWidth; numberEl.style.left = `${relativeLeft + rect.width / 2 - (numberWidth / 2) + (Math.random() * 20 - 10)}px`; setTimeout(() => { numberEl.remove(); }, 800); }
-
+/**
+ * Main game loop for combat. Updates cooldowns, handles auto-attack, etc.
+ * @param {DOMHighResTimeStamp} timestamp - The current time provided by requestAnimationFrame.
+ */
 function combatTick(timestamp) {
-    if (!isCombatActive) { if (combatLoopRequestId) cancelAnimationFrame(combatLoopRequestId); combatLoopRequestId = null; return; }
-    gameTime = timestamp; const deltaTime = lastTickTime > 0 ? (timestamp - lastTickTime) / 1000 : 0; lastTickTime = timestamp;
+    if (!isCombatActive) {
+        if (combatLoopRequestId) cancelAnimationFrame(combatLoopRequestId);
+        combatLoopRequestId = null;
+        return;
+    }
+
+    gameTime = timestamp;
+    const deltaTime = lastTickTime > 0 ? (timestamp - lastTickTime) / 1000 : 0;
+    lastTickTime = timestamp;
+
+    // Update UI elements
     updateCooldownVisuals();
-    if (activeRepeatSkillId) { attemptUseSkill(activeRepeatSkillId, activeRepeatTargetId); } // Handle repeating skill
-    if (deltaTime > 0) { PLAYER_STATS_PLACEHOLDER.currentMana = Math.min(PLAYER_STATS_PLACEHOLDER.maxMana, PLAYER_STATS_PLACEHOLDER.currentMana + PLAYER_STATS_PLACEHOLDER.manaRegen * deltaTime); updateResourceDisplay(); }
+    if (deltaTime > 0) {
+        // TODO: Update player stats based on character data, not placeholder
+        // Example: currentCharacterData.mana = Math.min(currentCharacterData.maxMana, currentCharacterData.mana + (currentCharacterData.manaRegen || 1) * deltaTime);
+        PLAYER_STATS_PLACEHOLDER.currentMana = Math.min(PLAYER_STATS_PLACEHOLDER.maxMana, PLAYER_STATS_PLACEHOLDER.currentMana + (PLAYER_STATS_PLACEHOLDER.manaRegen || 1) * deltaTime);
+        updateResourceDisplay();
+    }
+
+    // --- Auto-Attack Logic ---
+    const hasAutoAttackUpgrade = currentCharacterData?.unlockedUpgrades?.includes('auto_attack_basic_lmb');
+    const isAutoAttackEnabled = currentCharacterData?.automationSettings?.autoAttackLMBEnabled === true;
+
+    if (isAutoAttackEnabled && hasAutoAttackUpgrade) {
+        // Check if player is NOT manually holding the corresponding button (LMB)
+        if (!keysDown['LMB']) { // Assuming 'LMB' is the key used in keysDown for left mouse
+            const lmbSkillSlotIndex = 4; // Index for LMB in skillBar.slots
+            const lmbSkillId = skillBar.slots[lmbSkillSlotIndex]?.skillId;
+
+            if (lmbSkillId) {
+                 // Check if the skill assigned to LMB is off cooldown *before* finding target
+                 const lmbSlotData = skillBar.slots[lmbSkillSlotIndex];
+                 const now = Date.now(); // Use consistent time
+                 if (now >= lmbSlotData.cooldownUntil) {
+                    const target = findAutoAttackTarget_UpperLeft();
+                    if (target) {
+                        // console.log(`Auto-attacking ${target.name} with ${lmbSkillId}`); // Optional: Log auto-attack action
+                        attemptUseSkill(lmbSkillId, target.instanceId);
+                        // Note: attemptUseSkill handles resource checks and puts skill on cooldown
+                    }
+                 } // else: Skill on cooldown, do nothing this tick
+            } // else: No skill assigned to LMB
+        } // else: Player is manually holding LMB, don't auto-attack
+    }
+    // -----------------------
+
+    // Handle manual repeating skill (from holding number keys or RMB)
+    // Ensure this doesn't conflict with auto-attack logic if keys overlap.
+    // Currently RMB uses 'RMB' key in keysDown, numbers use '1','2' etc. LMB uses 'LMB'. They are distinct.
+    if (activeRepeatSkillId && keysDown[skillBar.slots.find(s => s.skillId === activeRepeatSkillId)?.key]) {
+        // console.log("Manual Repeat Tick:", activeRepeatSkillId);
+        attemptUseSkill(activeRepeatSkillId, activeRepeatTargetId);
+    }
+
     // processEnemyTurns(deltaTime); // Future AI
-    if (isCombatActive) { combatLoopRequestId = requestAnimationFrame(combatTick); }
-    else { if (combatLoopRequestId) cancelAnimationFrame(combatLoopRequestId); combatLoopRequestId = null; }
+
+    // Continue the loop if still active
+    if (isCombatActive) {
+        combatLoopRequestId = requestAnimationFrame(combatTick);
+    } else {
+        if (combatLoopRequestId) cancelAnimationFrame(combatLoopRequestId);
+        combatLoopRequestId = null;
+    }
 }
 
 function handleCombatMouseMoveRepeat(event) {

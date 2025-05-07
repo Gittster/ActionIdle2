@@ -876,3 +876,39 @@ button:disabled {
     margin-top: 0.75rem; /* Space above the button */
     width: 100%; /* Make button full width of card padding */
 }
+/* --- Overview Panel Automation Toggles --- */
+.automation-toggle-section {
+    margin-top: 2rem; /* Space above the section */
+    padding-top: 1rem;
+    border-top: 1px solid #4b5563; /* Separator */
+}
+
+.automation-toggle-section h4 {
+    font-size: 1rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.toggle-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.toggle-control input[type="checkbox"] {
+    margin-right: 0.75rem;
+    width: 18px; /* Adjust size */
+    height: 18px;
+    cursor: pointer;
+    /* Optional: Style checkbox appearance */
+    accent-color: #60a5fa; /* Color for the checkmark/background */
+}
+
+.toggle-control label {
+    margin-bottom: 0; /* Override default label margin */
+    font-size: 0.9rem;
+    color: #e5e7eb;
+    cursor: pointer;
+}
